@@ -8,10 +8,10 @@ function App() {
   const editor = useEditor(() => ({
     content: `
     <div tiptap-is="columns" gap=10>
-      <div tiptap-is='column'>aaa</div>
-      <div tiptap-is='column'>aaa</div>
-      <div tiptap-is='column'>aaa</div>
-      <div tiptap-is='column'>aaa</div>
+      <div tiptap-is='column'>1</div>
+      <div tiptap-is='column'>2</div>
+      <div tiptap-is='column'>3</div>
+      <div tiptap-is='column'>4</div>
     </div>
     `
   }))

@@ -1,14 +1,14 @@
 import { createComponent, createContext, createRoot, createSignal, For, mergeProps, onCleanup, onMount, useContext } from 'solid-js'
 import { createMutable } from 'solid-js/store'
-import { Node, type NodeViewRenderer } from '@tiptap/core'
+import { Editor, Node, type NodeViewRenderer } from '@tiptap/core'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { insert, render } from 'solid-js/web'
-import { Fragment } from 'solid-js/h/jsx-runtime'
+import { render } from 'solid-js/web'
 
 const log = (v, ...arg) => (console.log(v, ...arg), v)
 
 
 export const Columns = (props: Partial<{ gap: number }>) => {
+  log(props)
   props = mergeProps({ gap: 32 }, props)
 
   const [cols, setCols] = createSignal(0)
@@ -25,15 +25,17 @@ export const Columns = (props: Partial<{ gap: number }>) => {
   )
 }
 
-const Col = () => {
+const Col = (props) => {
   const col = <div class='is-editable' style={`flex: 1 0; background: rgba(0,0,0,.1); min-height: 1.5em`} tiptap-is='column' /> as HTMLElement
-  Promise.resolve().then(() => col.after(Hand()))
+  Promise.resolve().then(() => col.after(Hand(props)))
   return col
 }
 
-const Hand = () => {
+const Hand = (props: { editor: Editor }) => {
   return (
-    <div class='col-hand' contenteditable='false'> </div>
+    <div class='col-hand' contenteditable='false'>
+      <div></div>
+    </div>
   )
 }
 
@@ -70,9 +72,9 @@ export const ColExt = Node.create({
 })
 
 function createNodeView(Comp): NodeViewRenderer {
-  return ({ HTMLAttributes }) => {
+  return ({ HTMLAttributes, ...attrs }) => {
     let root = document.createElement('div')
-    const dispose = render(() => <Comp {...HTMLAttributes} />, root)
+    const dispose = render(() => <Comp {...HTMLAttributes} {...attrs} />, root)
     const dom = root.firstElementChild!
     dom.remove()
     root = void 0 as any
