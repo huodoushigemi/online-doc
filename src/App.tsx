@@ -1,7 +1,8 @@
 import { createSignal, For, mergeProps } from 'solid-js'
-import './App.css'
+import './App.scss'
 
 import useEditor from './use'
+import { Columns } from './Columns'
 
 function App() {
   const editor = useEditor(() => ({
@@ -23,6 +24,8 @@ function App() {
   return (
     <>
       {editor().view.dom}
+      <br />
+      <Columns />
     </>
   )
 }

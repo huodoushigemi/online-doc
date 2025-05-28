@@ -3,7 +3,7 @@ import type { EditorOptions } from '@tiptap/core'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { TextStyleKit } from '@tiptap/extension-text-style'
-import { xx } from './Columns'
+import { ColExt, xx } from './Columns'
 
 export type EditorRef = Editor | ((editor: Editor) => void)
 

@@ -29,3 +29,21 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.col-hand {
+  width: 4px;
+  margin: 0 calc((var(--gap) - 4px) / 4);
+  padding: 0 calc((var(--gap) - 4px) / 4);
+  // background: rgba(0, 0, 0, .1);
+  cursor: w-resize;
+
+  &:hover {
+    &::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 100%;
+      background: rgba(0, 0, 0, .1);
+    }
+  }
+}
