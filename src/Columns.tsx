@@ -1,16 +1,16 @@
-import { createComponent, createContext, createRoot, createSignal, For, mergeProps, onCleanup, onMount, useContext } from 'solid-js'
+import { batch, createComponent, createContext, createEffect, createRoot, createSignal, For, getOwner, mergeProps, onCleanup, onMount, useContext } from 'solid-js'
 import { createMutable } from 'solid-js/store'
-import { Editor, Node, type NodeViewRenderer } from '@tiptap/core'
-import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { Editor, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
 import { render } from 'solid-js/web'
+import { createPointerListeners } from '@solid-primitives/pointer'
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { clamp } from 'es-toolkit'
+import { usePointerDrag } from './hooks'
 
 const log = (v, ...arg) => (console.log(v, ...arg), v)
 
 
 export const Columns = (props: Partial<{ gap: number }>) => {
-  log(props)
-  props = mergeProps({ gap: 32 }, props)
-
   const [cols, setCols] = createSignal(0)
 
   let ref!: HTMLElement
@@ -20,21 +20,67 @@ export const Columns = (props: Partial<{ gap: number }>) => {
   createMutationObserver(() => ref, { childList: true, subtree: false }, () => updateCols())
   
   return (
-    // gap: ${props.gap}px
-    <div ref={ref} class='is-editable' style={`display: flex; --cols: ${cols()}; --gap: ${props.gap}px`} tiptap-is='columns' cols={cols()} />
+    <div ref={ref} class='is-editable' style={`display: flex; gap: ${props.gap}px; --cols: ${cols()}; --gap: ${props.gap}px;`} gap={props.gap} tiptap-is='columns' cols={cols()} />
   )
 }
 
 const Col = (props) => {
-  const col = <div class='is-editable' style={`flex: 1 0; background: rgba(0,0,0,.1); min-height: 1.5em`} tiptap-is='column' /> as HTMLElement
-  Promise.resolve().then(() => col.after(Hand(props)))
-  return col
+  const state = createMutable({ cols: 0, gap: 0, last: false })
+
+  let col: HTMLElement, hand: HTMLElement
+  
+  // queueMicrotask(() => hand && col.after(hand))
+
+  const update = () => batch(() => {
+    const parent = col.parentElement!
+    state.cols = +parent.getAttribute('cols')! || 0
+    state.gap = +parent.getAttribute('gap')! || 0
+    state.last = parent.lastElementChild == hand || parent.lastElementChild == col
+    state.last && hand.remove()
+  })
+
+  createMutationObserver(() => col.parentElement!, { attributes: true }, update)  
+  createMutationObserver(() => col.parentElement!, { childList: true }, update)
+
+  // onMount(update)
+  queueMicrotask(update)
+
+  return (
+    <div ref={col} class='' style={`flex: 0 0 auto; width: calc(${1 / state.cols * 100}% - ${(state.cols - 1) * state.gap / state.cols}px); min-height: 1.5em ${props.style}`} tiptap-is='column'>
+      <div class='is-editable' />
+      <Hand ref={v => hand = v} {...props} />
+    </div>
+  )
 }
 
-const Hand = (props: { editor: Editor }) => {
+const Hand = (props) => {
+  const addCol = (e: MouseEvent) => {
+    e.stopPropagation()
+    props.onAdd?.()
+  }
+
+  let el: HTMLElement
+  usePointerDrag(() => el, {
+    start(e, move) {
+      const col = el.parentElement!
+      const container = col.parentElement!, cw = container.offsetWidth
+      const [cols, gap] = [+container.getAttribute('cols')!, +container.getAttribute('gap')!]
+      const [left, right] = [col, col.nextElementSibling as HTMLElement]
+      const [lw, rw] = [left?.offsetWidth || 0, right?.offsetWidth || 0]
+      const minw = cw * .05, maxw = lw + rw - minw
+      const reduce = (cols - 1) * gap / cols
+
+      move((e, { ox }) => {
+        left && (left.style.width = `calc(${(clamp(lw + ox, minw, maxw) + reduce) / cw * 100}% - ${reduce}px)`)
+        right && (right.style.width = `calc(${(clamp(rw - ox, minw, maxw) + reduce) / cw * 100}% - ${reduce}px)`)
+      })
+    },
+  })
+  
   return (
-    <div class='col-hand' contenteditable='false'>
-      <div></div>
+    <div ref={el} ref={props.ref} class='col-hand' contenteditable='false'>
+      <div class='dot' onClick={addCol} on:pointerdown={{ handleEvent: e => e.stopPropagation() }} />
+      {/* <div class='hand'></div> */}
     </div>
   )
 }
@@ -49,14 +95,10 @@ export const xx = Node.create({
   // addOptions: () => ({  }),
   parseHTML: () => [{ tag: '[tiptap-is="columns"]' }],
   addAttributes: () => ({
-    // cols: { parseHTML: el => el.querySelectorAll('& > [tiptap-is="column"]').length },
-    gap: { parseHTML: el => el.getAttribute('gap') },
+    gap: { parseHTML: el => el.getAttribute('gap') ? +el.getAttribute('gap')! : 24 },
   }),
-  // renderHTML: ({ HTMLAttributes }) => Columns(HTMLAttributes),
-  // renderHTML: ({ HTMLAttributes }) => (dom => ({ dom, contentDOM: dom }))(log(Columns(HTMLAttributes), 'render')),
-  renderHTML: ({ HTMLAttributes }) => ['div', { 'tiptap-is': 'columns', ...HTMLAttributes }, 0],
-  // addNodeView: () => ({ HTMLAttributes, node }) => (dom => ({ dom, contentDOM: dom }))(log(Columns(HTMLAttributes), 'addnode')),
-  addNodeView: () => createNodeView(Columns),
+  renderHTML: ({ node }) => ['div', { 'tiptap-is': 'columns', ...node.attrs }, 0],
+  addNodeView: () => createNodeView(Columns, { syncAttrs: ['style'] }),
   addExtensions: () => [ColExt]
 })
 
@@ -66,25 +108,47 @@ export const ColExt = Node.create({
   content: 'paragraph block*',
   defining: true,
   parseHTML: () => [{ tag: '[tiptap-is="column"]' }],
+  addOptions: () => ({ xxx: 11 }),
+  addAttributes: () => ({
+    style: { parseHTML: el => el.style.cssText },
+  }),
   // renderHTML: () => (dom => ({ dom, contentDOM: dom }))(Col()),
-  renderHTML: ({ HTMLAttributes }) => ['div', { 'tiptap-is': 'col', ...HTMLAttributes }],
-  addNodeView: () => createNodeView(Col),
+  renderHTML: ({ node }) => ['div', { 'tiptap-is': 'col', ...node.attrs }, 0],
+  addNodeView: () => createNodeView(Col, { syncAttrs: ['style'] }),
+  addCommands: () => ({
+    // setCol: (attrs) => ({ editor }) => { editor.chain().updateAttributes('column', attrs).run() },
+    // addCol: () => ({ editor }) => editor.chain().updateAttributes('column', attrs).run()
+  }),
+  onCreate(event) {
+    
+  },
 })
 
-function createNodeView(Comp): NodeViewRenderer {
-  return ({ HTMLAttributes, ...attrs }) => {
+function createNodeView(Comp, options?: { syncAttrs?: string[], onMount?(el: HTMLElement, props: NodeViewRendererProps): void }): NodeViewRenderer {
+  return (props) => {
     let root = document.createElement('div')
-    const dispose = render(() => <Comp {...HTMLAttributes} {...attrs} />, root)
+    // const dispose = render(() => <Comp {...props.HTMLAttributes} tiptapNode={props} />, root)
+    const dispose = render(() => {
+      const el = (<Comp {...props.HTMLAttributes} /> as any)() as HTMLElement
+      options?.onMount?.(el, props)
+      if (options?.syncAttrs?.length) {
+        createMutationObserver(el, { attributes: true }, () => {
+          options!.syncAttrs!.forEach(k => props.node.attrs[k] = el.getAttribute(k))
+        })
+      }
+      return el
+    }, root)
     const dom = root.firstElementChild!
     dom.remove()
     root = void 0 as any
     // const [dom, dispose] = createRoot(dis => [Comp(HTMLAttributes), dis])
+    // dom._tiptap_NodeViewRendererProps = props
+    // cb?.(dom, props)
     return {
       dom,
       get contentDOM() { return dom.classList.contains('is-editable') ? dom : dom.querySelector('.is-editable') },
       destroy: () => dispose(),
-      // update: () => log(111),
-      ignoreMutation: () => true
+      ignoreMutation: () => true,
     }
   }
 }

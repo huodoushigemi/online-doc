@@ -7,7 +7,9 @@ import { Columns } from './Columns'
 function App() {
   const editor = useEditor(() => ({
     content: `
-    <div tiptap-is="columns" gap=10>
+    <p>asdsad</p>
+
+    <div tiptap-is="columns">
       <div tiptap-is='column'>1</div>
       <div tiptap-is='column'>2</div>
       <div tiptap-is='column'>3</div>
@@ -15,6 +17,10 @@ function App() {
     </div>
     `
   }))
+
+  // editor().commands.setNodeSelection
+
+  window.editor = editor()
 
   Object.assign(editor().view.dom.style, {
     outline: '0',

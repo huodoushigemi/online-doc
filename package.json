@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@solid-primitives/mutation-observer": "^1.2.1",
+    "@solid-primitives/pointer": "^0.3.1",
+    "@solid-primitives/utils": "^6.3.1",
     "@tiptap/core": "3.0.0-beta.5",
     "@tiptap/extension-text-style": "3.0.0-beta.5",
     "@tiptap/pm": "3.0.0-beta.5",
     "@tiptap/starter-kit": "3.0.0-beta.5",
+    "es-toolkit": "^1.38.0",
     "solid-js": "^1.9.5"
   },
   "devDependencies": {

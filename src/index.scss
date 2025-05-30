@@ -31,19 +31,81 @@ button:focus-visible {
 }
 
 .col-hand {
-  width: 4px;
-  margin: 0 calc((var(--gap) - 4px) / 4);
-  padding: 0 calc((var(--gap) - 4px) / 4);
-  // background: rgba(0, 0, 0, .1);
+  --w: 4px;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  height: 100%;
+  // flex: 0 0 auto;
+  width: var(--gap);
   cursor: w-resize;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 100ms;
 
-  &:hover {
+  &:hover, &:active {
+    opacity: 1;
+  }
+
+  &::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 100%;
+    background: rgba(0, 0, 0, .1);
+  }
+
+  > .dot {
+    --w: 20px;
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    width: calc(var(--w) * 1);
+    height: calc(var(--w) * 1);
+    
+    &:hover {
+      &::after {
+        content: '+';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(var(--w) * 1);
+        height: calc(var(--w) * 1);
+        background-color: rgba(blue, .75);
+        box-shadow: 0 4px 6px rgba(#000, .2);
+      }
+    }
+
     &::after {
       content: '';
       display: block;
-      width: 4px;
-      height: 100%;
-      background: rgba(0, 0, 0, .1);
+      width: 8px;
+      height: 8px;
+      color: #fff;
+      background-color: rgba(blue, .5);
+      border-radius: 50%;
+      transition: all 100ms;
+      cursor: pointer;
     }
+  }
+}
+
+[tiptap-is=columns] {
+  &:hover, &:active, .active {
+    & > [tiptap-is=column] {
+      background: rgba(#000, .05);
+    }
+  }
+}
+
+[tiptap-is=column] {
+  position: relative;
+  transition: background 100ms linear;
+  &:hover {
+    // background: rgba(#000, .05);
   }
 }
