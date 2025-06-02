@@ -105,7 +105,7 @@ export const xx = Node.create({
 export const ColExt = Node.create({
   name: 'column',
   group: 'block',
-  content: 'paragraph block*',
+  content: 'block*',
   defining: true,
   parseHTML: () => [{ tag: '[tiptap-is="column"]' }],
   addOptions: () => ({ xxx: 11 }),

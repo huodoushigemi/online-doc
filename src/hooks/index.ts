@@ -1,6 +1,6 @@
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
-import { createRoot } from 'solid-js'
+import { createRenderEffect, createRoot } from 'solid-js'
 
 interface UseDragOptions {
   start?(
@@ -43,4 +43,10 @@ export function usePointerDrag(el: MaybeAccessor<HTMLElement | undefined>, optio
       })
     }
   })
+}
+
+export function model(el: any, value: () => [() => string, (v: string) => any]) {
+  const [field, setField] = value()
+  createRenderEffect(() => (el.value = field()))
+  el.addEventListener("input", (e) => setField((e.target as HTMLInputElement).value))
 }

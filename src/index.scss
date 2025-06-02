@@ -1,3 +1,19 @@
+:root {
+  color-scheme: light;
+  --bg: #fff;
+  --menu-bg: #fff;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #121212;
+  --menu-bg: #121212;
+}
+
+body {
+  @apply bg-[--bg];
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -17,19 +33,6 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
 .col-hand {
   --w: 4px;
   position: absolute;
@@ -42,7 +45,7 @@ button:focus-visible {
   display: flex;
   justify-content: center;
   opacity: 0;
-  transition: opacity 100ms;
+  transition: opacity 100ms linear;
 
   &:hover, &:active {
     opacity: 1;
@@ -95,9 +98,9 @@ button:focus-visible {
 }
 
 [tiptap-is=columns] {
-  &:hover, &:active, .active {
+  &:hover, &:active, &.active, &.has-focus {
     & > [tiptap-is=column] {
-      background: rgba(#000, .05);
+      background: rgba(#000, .05);  
     }
   }
 }
@@ -108,4 +111,35 @@ button:focus-visible {
   &:hover {
     // background: rgba(#000, .05);
   }
+}
+
+img.has-focus {
+  @apply max-w-full outline-(2 solid blue);
+}
+
+.is-empty:not(table)::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  // float: left;
+  // color: #adb5bd;
+  pointer-events: none;
+  opacity: .30;
+}
+
+.li {
+  @apply cursor-pointer;
+  &:hover {
+    @apply bg-gray/15;
+  }
+  &.selected, &.active {
+    @apply bg-gray/10;
+  }
+}
+
+.menu {
+  @apply py-1 shadow-lg rd-2 space-y-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
+}
+
+.menu-x {
+  @apply px-1 shadow-lg rd-2 space-x-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
 }
