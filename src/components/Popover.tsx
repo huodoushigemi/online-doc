@@ -1,7 +1,8 @@
 import { autoUpdate, createFloating, type createFloatingProps, type ReferenceType } from 'floating-ui-solid'
 import { children, createEffect, createMemo, splitProps } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
-export function Popover(attrs: { reference: ReferenceType; floating?: HTMLElement } & createFloatingProps) {
+export function Popover(attrs: { reference: ReferenceType; floating?: HTMLElement; portal?: HTMLElement } & createFloatingProps) {
   const [_, props] = splitProps(attrs, ['reference', 'floating'])
   const reference = children(() => attrs.reference)
   const floating = children(() => attrs.floating)
@@ -22,7 +23,7 @@ export function Popover(attrs: { reference: ReferenceType; floating?: HTMLElemen
   return (
     <>
       {reference()}
-      {floating()}
+      {props.portal ? <Portal mount={props.portal}>{floating()}</Portal> : floating()}
     </>
   )
 }

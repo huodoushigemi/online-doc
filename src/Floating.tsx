@@ -1,13 +1,13 @@
-import type { Editor } from '@tiptap/core'
+import { Editor } from '@tiptap/core'
 import { BubbleMenuPlugin, type BubbleMenuPluginProps } from '@tiptap/extension-bubble-menu'
 import type { FloatingMenuPluginProps } from '@tiptap/extension-floating-menu'
 import { FloatingMenuPlugin } from '@tiptap/extension-floating-menu'
-import { createEffect, createSignal, onCleanup, onMount, splitProps } from 'solid-js'
+import { createEffect, createSignal, mergeProps, onCleanup, onMount, splitProps } from 'solid-js'
 import { Portal } from 'solid-js/web'
 import IconoirOpenNewWindow from './icons/IconoirOpenNewWindow'
 import { createMutable } from 'solid-js/store'
 import { useActive, useEditorTransaction } from './Editor'
-import { model } from './hooks'
+import { model, toSignle } from './hooks'
 
 type AAA<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
@@ -18,6 +18,9 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
     menuEl.style.visibility = 'hidden'
   })
 
+  const text = useEditorTransaction(() => props.editor, editor => editor.state.selection.$from.node().textContent)
+  const search = useEditorTransaction(() => props.editor, () => (s => s[0] == '/' ? s.slice(1) : '')(text()))
+
   createEffect(() => {
     if (props.editor?.isDestroyed) return
 
@@ -27,12 +30,8 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
       editor,
       element: menuEl,
       pluginKey: props.pluginKey || 'floatingMenu',
-      shouldShow: ({ editor, state }) => {
-        // 获取当前节点 并判断是否为 p 节点
-        const { selection } = state
-        const node = selection.$from.node()
-        return node.textContent[0] == '/'
-      },
+      // shouldShow: () => text()[0] == '/',
+      shouldShow: () => true,
       options: {
         placement: 'bottom-start',
         ...props.options
@@ -52,9 +51,12 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
   })
 
   return (
-    <Portal ref={menuEl} {...props} mount={document.body}>
-      {attrs.children}
-    </Portal>
+    <div ref={menuEl} {...props}>
+      {text()[0] == '/'
+        ? typeof attrs.children == 'function' ? attrs.children(search) : attrs.children
+        : void 0
+      }
+    </div>
   )
 }
 
@@ -100,23 +102,22 @@ export function BubbleMenu(attrs: AAA<BubbleMenuPluginProps, 'editor'> & Record<
   )
 }
 
-// export function Popover(props) {
-//   const { refs, floatingStyles } = createFloating()
-//   return (
-//     <div ref={refs.setFloating} style={floatingStyles()}>{props.children}</div>
-//   )
-// }
-
 export function ImageBubbleMenu(props: { editor: Editor, uploadImage: () => Promise<string> }) {
   const current = () => props.editor.state.doc.nodeAt(props.editor.state.selection.from)
   const active = useActive(props.editor, 'image')
-  const srcSignal = createSignal('')
-  const src = useEditorTransaction(props.editor, () => active() ? current()?.attrs.src : '')
-  createEffect(() => srcSignal[1](src()))
+  
+  const attrs = createMutable({ src: '' })
+  const _attrs = useEditorTransaction(props.editor, () => active() ? { ...props.editor.getAttributes('image') } : {})
+  createEffect(() => Object.assign(attrs, _attrs()))
+
+  function ok() {
+    props.editor.chain().setImage(attrs).focus().run()
+  }
+
   return (
     <BubbleMenu editor={props.editor} shouldShow={({ editor, state }) => editor.isActive('image')} updateDelay={0}>
       <div class='menu-x flex aic p-1'>
-        <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' use:model={srcSignal} />
+        <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} />
         <div class='li flex aic p-1 rd-2' onClick={() => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run())}><ILucideUpload /></div>
       </div>
     </BubbleMenu>
@@ -139,9 +140,9 @@ export function LinkPane(props: { editor: Editor }) {
 
   return (
     <div class='menu-x flex aic p-1' {...props}>
-      <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} />
-      <ILucideCornerDownLeft class='li flex aic p-1 rd-2' onClick={ok} />
-      <div class='self-stretch ml-1! mr-.5! my-1 w-1px bg-gray/20' />
+      <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'href')} />
+      {/* <ILucideCornerDownLeft class='li flex aic p-1 rd-2' onClick={ok} />
+      <div class='self-stretch ml-1! mr-.5! my-1 w-1px bg-gray/20' /> */}
       <IconoirOpenNewWindow class='li flex aic p-1 rd-2' onClick={() => attrs.target = attrs.target ? '' : '_blank'} />
       <ILucideTrash class='li flex aic p-1 rd-2' onClick={() => props.editor.chain().unsetLink().focus().run()} />
     </div>

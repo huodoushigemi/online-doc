@@ -50,3 +50,7 @@ export function model(el: any, value: () => [() => string, (v: string) => any]) 
   createRenderEffect(() => (el.value = field()))
   el.addEventListener("input", (e) => setField((e.target as HTMLInputElement).value))
 }
+
+export function toSignle<T extends Record<string, any>>(state: T, k: keyof T) {
+  return [() => state[k], v => state[k] = v]
+}

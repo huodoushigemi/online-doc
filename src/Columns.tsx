@@ -1,26 +1,50 @@
-import { batch, createComponent, createContext, createEffect, createRoot, createSignal, For, getOwner, mergeProps, onCleanup, onMount, useContext } from 'solid-js'
+import { batch, createComponent, createContext, createEffect, createMemo, createRoot, createSignal, For, getOwner, mergeProps, onCleanup, onMount, useContext } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { Editor, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
 import { render } from 'solid-js/web'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { createElementSize } from '@solid-primitives/resize-observer'
+import { createElementBounds } from '@solid-primitives/bounds'
 import { clamp } from 'es-toolkit'
 import { usePointerDrag } from './hooks'
 
 const log = (v, ...arg) => (console.log(v, ...arg), v)
 
-
 export const Columns = (props: Partial<{ gap: number }>) => {
   const [cols, setCols] = createSignal(0)
 
   let ref!: HTMLElement
+
+  const [children, setChildren] = createSignal<Element[]>([])
   
   const updateCols = () => setCols(ref?.querySelectorAll('& > [tiptap-is="column"]').length)
   onMount(() => updateCols())
-  createMutationObserver(() => ref, { childList: true, subtree: false }, () => updateCols())
+  createMutationObserver(() => ref, { childList: true }, () => {
+    setChildren([...ref!.querySelectorAll('& > [tiptap-is="column"]')])
+  })
+
+  // const wm = new WeakMap()
+  const container = <div style='position: absolute; z-index: 1'></div> as HTMLElement
+  const bounds = createElementBounds(() => ref, { trackScroll: false })
+  const bounds2 = createElementBounds(() => ref, { trackScroll: false })
+  createEffect(() => {
+    ref.insertBefore(container, ref.firstChild)
+    onCleanup(() => container.remove())
+  })
+
+  createEffect(() => {
+    children().forEach(el => {
+      // wm.set(el, )
+      const dispose = render(() => <Hand2 reference={el} prev={el} next={el.after()} bounds={bounds} bounds2={bounds2} />, container)
+      onCleanup(dispose)
+    })
+  })
   
   return (
-    <div ref={ref} class='is-editable' style={`display: flex; gap: ${props.gap}px; --cols: ${cols()}; --gap: ${props.gap}px;`} gap={props.gap} tiptap-is='columns' cols={cols()} />
+    <div ref={ref} class='is-editable' style={`display: flex; gap: ${props.gap}px; --cols: ${cols()}; --gap: ${props.gap}px;`} gap={props.gap} tiptap-is='columns' cols={cols()}>
+      {props.children}
+    </div>
   )
 }
 
@@ -62,7 +86,7 @@ const Hand = (props) => {
   let el: HTMLElement
   usePointerDrag(() => el, {
     start(e, move) {
-      const col = el.parentElement!
+      const col = props.reference!
       const container = col.parentElement!, cw = container.offsetWidth
       const [cols, gap] = [+container.getAttribute('cols')!, +container.getAttribute('gap')!]
       const [left, right] = [col, col.nextElementSibling as HTMLElement]
@@ -79,6 +103,46 @@ const Hand = (props) => {
   
   return (
     <div ref={el} ref={props.ref} class='col-hand' contenteditable='false'>
+      <div class='dot' onClick={addCol} on:pointerdown={{ handleEvent: e => e.stopPropagation() }} />
+      {/* <div class='hand'></div> */}
+    </div>
+  )
+}
+
+const Hand2 = (props) => {
+  const addCol = (e: MouseEvent) => {
+    e.stopPropagation()
+    props.onAdd?.()
+  }
+
+  const bounds = createElementBounds(props.reference, { trackMutation: false, trackResize: false })
+  
+  const style = createMemo(() => (`
+    position: absolute;
+    transform: translate(${bounds.right - props.bounds2.left}px, ${bounds.top - props.bounds2.top}px);
+    height: ${bounds.height}px;
+  `))
+
+  let el: HTMLElement
+  usePointerDrag(() => el, {
+    start(e, move) {
+      const col = el.parentElement!
+      const container = col.parentElement!, cw = container.offsetWidth
+      const [cols, gap] = [+container.getAttribute('cols')!, +container.getAttribute('gap')!]
+      const [left, right] = [col, col.nextElementSibling as HTMLElement]
+      const [lw, rw] = [left?.offsetWidth || 0, right?.offsetWidth || 0]
+      const minw = cw * .05, maxw = lw + rw - minw
+      const reduce = (cols - 1) * gap / cols
+
+      move((e, { ox }) => {
+        left && (left.style.width = `calc(${(clamp(lw + ox, minw, maxw) + reduce) / cw * 100}% - ${reduce}px)`)
+        right && (right.style.width = `calc(${(clamp(rw - ox, minw, maxw) + reduce) / cw * 100}% - ${reduce}px)`)
+      })
+    },
+  })
+  
+  return (
+    <div ref={el} ref={props.ref} class='col-hand' style={style()} contenteditable='false'>
       <div class='dot' onClick={addCol} on:pointerdown={{ handleEvent: e => e.stopPropagation() }} />
       {/* <div class='hand'></div> */}
     </div>

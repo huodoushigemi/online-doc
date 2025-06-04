@@ -1,28 +1,10 @@
-## Usage
+# 在线文档
 
-```bash
-$ npm install # or pnpm install or yarn install
+一个开源的在线文档服务，具备基本的文档编辑功能，只需一行代码即可接入到你的项目中
+
+```js
+const content = `<p>我是富文本</p>`
+
+// 打开在线文档窗口，返回编辑后的内容
+const content2 = await import('xxxxx').then(e => e.openDoc({ content }))
 ```
-
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm run dev`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
-
-### `npm run build`
-
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-## Deployment
-
-Learn more about deploying your application with the [documentations](https://vite.dev/guide/static-deploy.html)

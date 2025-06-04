@@ -7,6 +7,7 @@ import { TableKit } from '@tiptap/extension-table'
 import FloatingMenu from '@tiptap/extension-floating-menu'
 import { ColExt, xx } from './Columns'
 import { Focus, Placeholder, Selection } from '@tiptap/extensions'
+import { ListKit } from '@tiptap/extension-list'
 import Image from '@tiptap/extension-image'
 
 export type EditorRef = Editor | ((editor: Editor) => void)
@@ -17,12 +18,15 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
       ...props?.(),
       extensions: [
         TextStyleKit,
-        StarterKit,
+        StarterKit.configure({
+          link: { openOnClick: false },
+        }),
         // Selection,
         xx,
+        ListKit,
         Focus,
         TableKit,
-        Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%' } }),
+        Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
         Placeholder.configure({
           placeholder: 'Type / to browse options',
         }),

@@ -56,7 +56,7 @@ button:focus-visible {
     display: block;
     width: 4px;
     height: 100%;
-    background: rgba(0, 0, 0, .1);
+    background: rgba(gray, .5);
   }
 
   > .dot {
@@ -128,7 +128,7 @@ img.has-focus {
 
 .li {
   @apply cursor-pointer;
-  &:hover {
+  &:hover, &.hover {
     @apply bg-gray/15;
   }
   &.selected, &.active {
