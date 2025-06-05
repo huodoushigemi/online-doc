@@ -6,7 +6,7 @@ import { createPointerListeners } from '@solid-primitives/pointer'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createElementSize } from '@solid-primitives/resize-observer'
 import { createElementBounds } from '@solid-primitives/bounds'
-import { clamp } from 'es-toolkit'
+import { clamp, sum } from 'es-toolkit'
 import { usePointerDrag } from './hooks'
 
 const log = (v, ...arg) => (console.log(v, ...arg), v)
@@ -16,7 +16,7 @@ export const Columns = (props: Partial<{ gap: number }>) => {
 
   let ref!: HTMLElement
 
-  const [children, setChildren] = createSignal<Element[]>([])
+  const [children, setChildren] = createSignal<HTMLElement[]>([])
   
   const updateCols = () => setCols(ref?.querySelectorAll('& > [tiptap-is="column"]').length)
   onMount(() => updateCols())
@@ -34,10 +34,18 @@ export const Columns = (props: Partial<{ gap: number }>) => {
   })
 
   createEffect(() => {
+    const cw = ref.offsetWidth
+    const ws = []
     children().forEach(el => {
       // wm.set(el, )
-      const dispose = render(() => <Hand2 reference={el} prev={el} next={el.after()} bounds={bounds} bounds2={bounds2} />, container)
+      const dispose = render(() => <Hand2 gap={props.gap || 0} reference={el} prev={el} next={el.after()} bounds={bounds} bounds2={bounds2} />, container)
       onCleanup(dispose)
+      ws.push(el.style.width ? el.offsetWidth : void 0)
+    })
+    const remainw = cw - sum(ws.filter(w => w != null)) - ((cols() - 1) * (props.gap || 0))
+    const sss = ws.filter(e => e == null)
+    ws.forEach((w, i) => {
+      children()[i].style.width = `${remainw / sss.length}px`
     })
   })
   
@@ -119,6 +127,7 @@ const Hand2 = (props) => {
   
   const style = createMemo(() => (`
     position: absolute;
+    width: ${props.gap}px;
     transform: translate(${bounds.right - props.bounds2.left}px, ${bounds.top - props.bounds2.top}px);
     height: ${bounds.height}px;
   `))
@@ -126,7 +135,7 @@ const Hand2 = (props) => {
   let el: HTMLElement
   usePointerDrag(() => el, {
     start(e, move) {
-      const col = el.parentElement!
+      const col = props.reference!
       const container = col.parentElement!, cw = container.offsetWidth
       const [cols, gap] = [+container.getAttribute('cols')!, +container.getAttribute('gap')!]
       const [left, right] = [col, col.nextElementSibling as HTMLElement]

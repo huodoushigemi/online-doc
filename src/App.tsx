@@ -56,6 +56,7 @@ function App() {
     { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => editor().commands.insertColumns() },
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
     { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => uploadImage() },
+    { label: '文件', kw: 'file', icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
     // { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => exec(chain => chain) },
     { label: '代码块', kw: 'code', icon: () => <ILucideCode />, cb: () => chain().toggleCodeBlock().run() },
     { label: '引用', kw: 'blockquote', icon: () => <ILucideQuote />, cb: () => chain().toggleBlockquote().run() },
@@ -75,7 +76,7 @@ function App() {
 
   return (
     <div class='flex flex-col max-w-[794px] min-h-[1123px] ma my-20 p10 box-border shadow-lg dark-bg-gray/05'>
-      <Columns>
+      <Columns gap={32}>
         <div tiptap-is='column'>aaa</div>
         <div tiptap-is='column'>aaa</div>
         <div tiptap-is='column'>aaa</div>

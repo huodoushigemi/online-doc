@@ -54,6 +54,7 @@ button:focus-visible {
   &::after {
     content: '';
     display: block;
+    flex-shrink: 0;
     width: 4px;
     height: 100%;
     background: rgba(gray, .5);
