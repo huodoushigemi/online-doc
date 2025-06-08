@@ -25,7 +25,9 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
         xx,
         ListKit,
         Focus,
-        TableKit,
+        TableKit.configure({
+          table: { resizable: true }
+        }),
         Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
         Placeholder.configure({
           placeholder: 'Type / to browse options',

@@ -30,7 +30,7 @@
 .tiptap table {
   border-collapse: collapse;
   margin: 0;
-  overflow: hidden;
+  overflow: hidden !important;
   table-layout: fixed;
   width: 100%;
 }

@@ -1,12 +1,12 @@
-import { children, createEffect, createSignal, For, mergeProps, onCleanup, onMount } from 'solid-js'
+import { For } from 'solid-js'
+import 'wc-mdit'
 import './App.scss'
 
 import useEditor from './use'
-import { Columns } from './Columns'
 import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
 import { chainReplace, useActive, useEditorTransaction, } from './Editor'
-import type { CommandProps, ChainedCommands } from '@tiptap/core'
-import { Dynamic, Portal } from 'solid-js/web'
+import type { ChainedCommands } from '@tiptap/core'
+import { Dynamic } from 'solid-js/web'
 import { chooseImage, file2base64 } from './utils'
 import { Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
@@ -17,23 +17,22 @@ const log = (a) => console.log(a)
 function App() {
   const editor = useEditor(() => ({
     content: `
+    <div tiptap-is="columns" gap=24>
+      <div tiptap-is='column'>1</div>
+      <div tiptap-is='column'>2</div>
+      <div tiptap-is='column'>3</div>
+      <div tiptap-is='column'>4</div>
+    </div>
     <p>qweasd</p>
-    <img src="http://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" />
-
     <a href="xxx">123456</a>
     `
-    // <div tiptap-is="columns">
-    //   <div tiptap-is='column'>1</div>
-    //   <div tiptap-is='column'>2</div>
-    //   <div tiptap-is='column'>3</div>
-    //   <div tiptap-is='column'>4</div>
-    // </div>
   }))
-
-  // editor().commands.setNodeSelection
 
   window.editor = editor()
   editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
+  // editor().view.dom.classList.add('markdown-body')
+  editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
+  editor().commands.focus()
 
   const current = useEditorTransaction(editor, editor => editor.state.selection.$from.node())
   // const active = (k: string, v?: any) => useEditorTransaction(editor, editor => editor.commands.)
@@ -50,10 +49,8 @@ function App() {
     chain().setImage({ src }).run()
   }
 
-  onCleanup(() => console.log('cleanup'))
-
   const nodes = [
-    { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => editor().commands.insertColumns() },
+    { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => chain().insertColumns().run() },
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
     { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => uploadImage() },
     { label: '文件', kw: 'file', icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
@@ -75,14 +72,9 @@ function App() {
   ]
 
   return (
-    <div class='flex flex-col max-w-[794px] min-h-[1123px] ma my-20 p10 box-border shadow-lg dark-bg-gray/05'>
-      <Columns gap={32}>
-        <div tiptap-is='column'>aaa</div>
-        <div tiptap-is='column'>aaa</div>
-        <div tiptap-is='column'>aaa</div>
-        <div tiptap-is='column'>aaa</div>
-      </Columns>
-      
+    <div class=''>
+      <wc-mdit theme='github-light' no-shadow={true} />
+
       {editor().view.dom}
 
       <FloatingMenu editor={editor()}>
@@ -101,7 +93,7 @@ function App() {
       </FloatingMenu>
 
       <BubbleMenu editor={editor()} shouldShow={({ editor }) => editor.state.selection.from != editor.state.selection.to && !editor.isActive('image')}>
-        <div class='menu-x flex aic lh-1em'>
+        <div class='menu-x flex aic lh-1em z-1'>
           <For each={marks}>
             {node => {
               return (

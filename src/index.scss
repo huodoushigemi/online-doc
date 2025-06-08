@@ -2,26 +2,24 @@
   color-scheme: light;
   --bg: #fff;
   --menu-bg: #fff;
+  --header-bg: #f6f6f7;
 }
 
 .dark {
   color-scheme: dark;
   --bg: #121212;
   --menu-bg: #121212;
+  --header-bg: #161618;
 }
 
 body {
-  @apply bg-[--bg];
+  @apply bg-[--bg] m-0;
 }
 
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -112,6 +110,8 @@ button:focus-visible {
   &:hover {
     // background: rgba(#000, .05);
   }
+  & > *:first-child { @apply mt-0; }
+  & > *:last-child { @apply mb-0; }
 }
 
 img.has-focus {

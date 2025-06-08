@@ -16,6 +16,7 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
   let menuEl!: HTMLDivElement
   onMount(() => {
     menuEl.style.visibility = 'hidden'
+    menuEl.style.zIndex = '1'
   })
 
   const text = useEditorTransaction(() => props.editor, editor => editor.state.selection.$from.node().textContent)
@@ -66,6 +67,7 @@ export function BubbleMenu(attrs: AAA<BubbleMenuPluginProps, 'editor'> & Record<
   onMount(() => {
     menuEl.style.visibility = 'hidden'
     menuEl.style.position = 'absolute'
+    menuEl.style.zIndex = '1'
   })
 
   createEffect(() => {

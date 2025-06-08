@@ -71,6 +71,9 @@ importers:
       solid-js:
         specifier: ^1.9.5
         version: 1.9.7
+      wc-mdit:
+        specifier: ^0.0.5
+        version: 0.0.5
     devDependencies:
       '@iconify-json/lucide':
         specifier: ^1.2.45
@@ -957,6 +960,9 @@ packages:
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
 
+  component-register@0.8.7:
+    resolution: {integrity: sha512-clPS/o1RNfJw7L1/w4q+nkj6l7JV32kFHCx6vW5nSPOEly4B9olMeADNilEgpLV/DdeS7y8JXhHKx9YvSj8vqQ==}
+
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
 
@@ -1342,6 +1348,11 @@ packages:
     resolution: {integrity: sha512-FoqMu0NCGBLCcAkS1qA+XJIQTR6/JHfQXl+uGteNCQ76T91DMUjPa9xfmeqMY3z80nLSg9yQmNjK0Px6RWsH/A==}
     engines: {node: '>=18'}
 
+  solid-element@1.9.1:
+    resolution: {integrity: sha512-baJy6Qz27oAUgkPlqOf3Y+7RsBiuVQrS51Nrh1ddDbrqrNPvJbIvehpUsTzLNFb2ZHIoHuNnDg330go/ZKcRdg==}
+    peerDependencies:
+      solid-js: ^1.9.3
+
   solid-floating-ui@0.3.1:
     resolution: {integrity: sha512-o/QmGsWPS2Z3KidAxP0nDvN7alI7Kqy0kU+wd85Fz+au5SYcnYm7I6Fk3M60Za35azsPX0U+5fEtqfOuk6Ao0Q==}
     engines: {node: '>=10'}
@@ -1534,6 +1545,9 @@ packages:
 
   w3c-keyname@2.2.8:
     resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==}
+
+  wc-mdit@0.0.5:
+    resolution: {integrity: sha512-ofAWh1lQT36aoWHno8z6C1xJlGchn0g5krIpgYb9OBG+lI0Nxq+R7Qgkg58Ttg1IBfaCn80j1EtB9r6Y4bfAtg==}
 
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
@@ -2430,6 +2444,8 @@ snapshots:
 
   colorette@2.0.20: {}
 
+  component-register@0.8.7: {}
+
   confbox@0.1.8: {}
 
   confbox@0.2.2: {}
@@ -2842,6 +2858,11 @@ snapshots:
       mrmime: 2.0.1
       totalist: 3.0.1
 
+  solid-element@1.9.1(solid-js@1.9.7):
+    dependencies:
+      component-register: 0.8.7
+      solid-js: 1.9.7
+
   solid-floating-ui@0.3.1(@floating-ui/dom@1.7.0)(solid-js@1.9.7):
     dependencies:
       '@floating-ui/dom': 1.7.0
@@ -3024,6 +3045,12 @@ snapshots:
       typescript: 5.8.3
 
   w3c-keyname@2.2.8: {}
+
+  wc-mdit@0.0.5:
+    dependencies:
+      markdown-it: 14.1.0
+      solid-element: 1.9.1(solid-js@1.9.7)
+      solid-js: 1.9.7
 
   webpack-virtual-modules@0.6.2: {}
 
