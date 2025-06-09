@@ -1,4 +1,4 @@
-import { Editor } from '@tiptap/core'
+import type { Editor } from '@tiptap/core'
 import { render } from 'solid-js/web'
 
 declare const editor: Editor
