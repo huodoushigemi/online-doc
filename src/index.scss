@@ -1,3 +1,5 @@
+// @import './github.css';
+
 :root {
   color-scheme: light;
   --bg: #fff;
@@ -116,16 +118,6 @@ button:focus-visible {
 
 img.has-focus {
   @apply max-w-full outline-(2 solid blue);
-}
-
-.is-empty:not(table,pre)::before {
-  content: attr(data-placeholder);
-  // position: absolute;
-  display: inline-block;
-  width: 0px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: .30;
 }
 
 .li {

@@ -1,24 +1,22 @@
 import { Editor, findChildren, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
 import { render } from 'solid-js/web'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { Columns } from './components/Columns'
+import { Columns } from '../components/Columns'
+import { onMount } from 'solid-js'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     columns: {
       insertColumns: (options?: Partial<{cols: number; gap: number}>) => ReturnType
-      addColAfter: (options: { index: number; pos: number }) => ReturnType
+      addColAfter: (options?: { index: number; pos: number }) => ReturnType
     }
   }
 }
 
-export const xx = Node.create({
+export const ColumnsKit = Node.create({
   name: 'columns',
   group: 'block',
   content: 'column+',
-  // isolating: true,
-  // defining: true,
-  // atom: true,
   parseHTML: () => [{ tag: '[tiptap-is="columns"]' }],
   addAttributes: () => ({
     gap: { parseHTML: el => el.getAttribute('gap') ? +el.getAttribute('gap')! : 0 },
@@ -49,14 +47,9 @@ export const xx = Node.create({
 
 const El = props => <div {...props} />
 
-export const ColExt = Node.create({
+const ColExt = Node.create({
   name: 'column',
-  // group: 'block',
-  content: 'block+',
-  // content: 'paragraph block*',
-  defining: true,
-  // isolating: true,
-  atom: true,
+  content: 'paragraph block*',
   parseHTML: () => [{ tag: '[tiptap-is="column"]' }],
   addAttributes: () => ({
     style: { parseHTML: el => `padding: 12px 0; ${el.style.cssText}` },
@@ -66,19 +59,20 @@ export const ColExt = Node.create({
   addNodeView: () => createNodeView(El, { syncAttrs: ['style'], contentDOM: el => el }),
 })
 
-function createNodeView(Comp, options?: { syncAttrs?: string[]; contentDOM?(el: HTMLElement): HTMLElement; onMount?(el: HTMLElement, props: NodeViewRendererProps): void }): NodeViewRenderer {
+function createNodeView(Comp, options?: { syncAttrs?: string[]; contentDOM?(el: HTMLElement): HTMLElement }): NodeViewRenderer {
   return (props) => {
     let root = document.createElement('div')
     // const dispose = render(() => <Comp {...props.HTMLAttributes} tiptapNode={props} />, root)
     const dispose = render(() => {
-      const el = (<Comp {...props.HTMLAttributes} /> as any)() as HTMLElement
-      options?.onMount?.(el, props)
+      let el!: HTMLElement
       if (options?.syncAttrs?.length) {
-        createMutationObserver(el, { attributes: true }, () => {
+        const sync = () => options!.syncAttrs!.forEach(k => props.node.attrs[k] = el.getAttribute(k))
+        onMount(sync)
+        createMutationObserver(()  => el, { attributes: true }, () => {
           options!.syncAttrs!.forEach(k => props.node.attrs[k] = el.getAttribute(k))
         })
       }
-      return el
+      return <Comp ref={el} {...props.HTMLAttributes} />
     }, root)
     const dom = root.firstElementChild! as HTMLElement
     dom.remove()

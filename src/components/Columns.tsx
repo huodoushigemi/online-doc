@@ -1,17 +1,12 @@
-import { batch, createComponent, createContext, createEffect, createMemo, createRoot, createSignal, For, getOwner, mergeProps, onCleanup, onMount, splitProps, useContext } from 'solid-js'
-import { createMutable } from 'solid-js/store'
-import { Editor, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
+import { createEffect, createMemo, createSignal, mergeProps, onCleanup, onMount, splitProps } from 'solid-js'
 import { render } from 'solid-js/web'
-import { createPointerListeners } from '@solid-primitives/pointer'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { createElementSize } from '@solid-primitives/resize-observer'
 import { createElementBounds } from '@solid-primitives/bounds'
 import { clamp, sum } from 'es-toolkit'
 import { usePointerDrag } from '../hooks'
 
 export const Columns = (attrs: Partial<{ gap: number }>) => {
   const [_, props] = splitProps(mergeProps({ gap: 0 }, attrs), ['children'])
-  // const [cols, setCols] = createSignal(0)
 
   let ref!: HTMLElement
 

@@ -1,6 +1,8 @@
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
-import { createRenderEffect, createRoot } from 'solid-js'
+import { createRenderEffect, createRoot, createSignal } from 'solid-js'
+import { createMutable } from 'solid-js/store'
 
 interface UseDragOptions {
   start?(
@@ -53,4 +55,11 @@ export function model(el: any, value: () => [() => string, (v: string) => any]) 
 
 export function toSignle<T extends Record<string, any>>(state: T, k: keyof T) {
   return [() => state[k], v => state[k] = v]
+}
+
+export function useDark() {
+  const calc = () => document.documentElement.className.includes('dark')
+  const dark = createSignal(calc())
+  createMutationObserver(document.documentElement, { attributes: true }, () => dark[1](calc()))
+  return dark
 }

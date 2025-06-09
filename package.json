@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -28,8 +28,9 @@
     "@tiptap/starter-kit": "3.0.0-beta.5",
     "es-toolkit": "^1.38.0",
     "floating-ui-solid": "^1.0.63",
-    "solid-floating-ui": "^0.3.1",
+    "shiki": "^3.6.0",
     "solid-js": "^1.9.5",
+    "tiptap-extension-code-block-shiki": "^0.5.1",
     "wc-mdit": "^0.0.5"
   },
   "devDependencies": {

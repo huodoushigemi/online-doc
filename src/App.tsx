@@ -2,19 +2,21 @@ import { For } from 'solid-js'
 import 'wc-mdit'
 import './App.scss'
 
-import useEditor from './use'
 import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
-import { chainReplace, useActive, useEditorTransaction, } from './Editor'
+import useEditor, { chainReplace, useActive, useEditorTransaction, } from './Editor'
 import type { ChainedCommands } from '@tiptap/core'
 import { Dynamic } from 'solid-js/web'
 import { chooseImage, file2base64 } from './utils'
 import { Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
 import { VDir } from './hooks/useDir'
+import { useDark } from './hooks'
 
 const log = (a) => console.log(a)
 
 function App() {
+  const [isDark] = useDark()
+
   const editor = useEditor(() => ({
     content: `
     <div tiptap-is="columns" gap=24>
@@ -30,9 +32,9 @@ function App() {
 
   window.editor = editor()
   editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
-  // editor().view.dom.classList.add('markdown-body')
   editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
-  // editor().commands.focus()
+  editor().view.dom.spellcheck = false
+  editor().commands.focus()
 
   const current = useEditorTransaction(editor, editor => editor.state.selection.$from.node())
   // const active = (k: string, v?: any) => useEditorTransaction(editor, editor => editor.commands.)
@@ -72,7 +74,7 @@ function App() {
 
   return (
     <div class=''>
-      <wc-mdit theme='github-light' no-shadow={true} />
+      <wc-mdit theme={`github-${isDark() ? 'dark' : 'light'}`} no-shadow={true} />
 
       {editor().view.dom}
 

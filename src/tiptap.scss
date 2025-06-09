@@ -96,3 +96,17 @@ pre  > code {
     width: 0;
   }
 }
+
+code > br {
+  display: initial !important;
+}
+
+p.is-empty::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  display: inline-block;
+  width: 0px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: .30;
+}

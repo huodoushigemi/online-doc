@@ -1,6 +1,16 @@
 import { access, type MaybeAccessor } from "@solid-primitives/utils"
-import type { Editor } from "@tiptap/core"
-import { createEffect, createSignal, onCleanup } from "solid-js"
+import { createMemo, createEffect, createSignal, onCleanup } from "solid-js"
+import type { EditorOptions } from '@tiptap/core'
+import { Editor } from '@tiptap/core'
+import StarterKit from '@tiptap/starter-kit'
+import { TextStyleKit } from '@tiptap/extension-text-style'
+import { TableKit } from '@tiptap/extension-table'
+import { ColumnsKit } from './extensions/Columns'
+import { Focus, Placeholder } from '@tiptap/extensions'
+import { ListKit } from '@tiptap/extension-list'
+import Image from '@tiptap/extension-image'
+import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
+import { useDark } from "./hooks"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -42,4 +52,50 @@ export function chainReplace(editor: Editor) {
 
 export function useActive(editor: MaybeAccessor<Editor>, key: string) {
   return useEditorTransaction(editor, editor => editor.isActive(key))
+}
+
+export type EditorRef = Editor | ((editor: Editor) => void)
+
+export default function useEditor(props?: () => Partial<EditorOptions>) {
+  const [isDark] = useDark()
+  return createMemo(() => {
+    const instance = new Editor({
+      ...props?.(),
+      extensions: [
+        TextStyleKit,
+        StarterKit.configure({
+          link: { openOnClick: false },
+          codeBlock: false,
+        }),
+        CodeBlockShiki.configure({ defaultTheme: `github-${isDark() ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
+        // Selection,
+        ColumnsKit,
+        ListKit.configure({
+          bulletList: false,
+          listItem: false,
+          orderedList: false,
+          listKeymap: false,
+        }),
+        Focus,
+        TableKit.configure({
+          table: { resizable: true }
+        }),
+        Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
+        Placeholder.configure({
+          placeholder: 'Type / to browse options',
+        }),
+        // FloatingMenu.configure({
+        //   shouldShow: ({ editor, view, state, oldState }) => {
+        //     return editor.isActive('paragraph')
+        //   }
+        // })
+      ]
+    })
+
+    onCleanup(() => {
+      instance.destroy()
+    })
+
+    return instance
+  })
 }
