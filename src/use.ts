@@ -9,6 +9,7 @@ import { ColExt, xx } from './Columns'
 import { Focus, Placeholder, Selection } from '@tiptap/extensions'
 import { ListKit } from '@tiptap/extension-list'
 import Image from '@tiptap/extension-image'
+import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 
 export type EditorRef = Editor | ((editor: Editor) => void)
 
@@ -20,7 +21,9 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
         TextStyleKit,
         StarterKit.configure({
           link: { openOnClick: false },
+          // codeBlock: false
         }),
+        CodeBlockShiki.configure({ defaultTheme: 'tokyo-night', exitOnArrowDown: false, exitOnTripleEnter: false }),
         // Selection,
         xx,
         ListKit,

@@ -32,7 +32,7 @@ function App() {
   editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
   // editor().view.dom.classList.add('markdown-body')
   editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
-  editor().commands.focus()
+  // editor().commands.focus()
 
   const current = useEditorTransaction(editor, editor => editor.state.selection.$from.node())
   // const active = (k: string, v?: any) => useEditorTransaction(editor, editor => editor.commands.)
@@ -54,7 +54,6 @@ function App() {
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
     { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => uploadImage() },
     { label: '文件', kw: 'file', icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
-    // { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => exec(chain => chain) },
     { label: '代码块', kw: 'code', icon: () => <ILucideCode />, cb: () => chain().toggleCodeBlock().run() },
     { label: '引用', kw: 'blockquote', icon: () => <ILucideQuote />, cb: () => chain().toggleBlockquote().run() },
     { label: '分割线', kw: 'hr', icon: () => <ILucideDivide />, cb: () => chain().setHorizontalRule().run() },
@@ -97,7 +96,7 @@ function App() {
           <For each={marks}>
             {node => {
               return (
-                <div class={`li ${node.isActive() && 'active'} p-1 my-1 rd-2`} onClick={() => node.active()}>
+                <div class={`li flex aic ${node.isActive() && 'active'} p-1 my-1 rd-2`} onClick={() => node.active()}>
                   <Popover
                     reference={<Dynamic component={node.icon} />}
                     floating={node.popover && node.isActive() ? <node.popover editor={editor()} on:click={e => e.stopPropagation()} /> : void 0}

@@ -17,8 +17,8 @@ export const xx = Node.create({
   group: 'block',
   content: 'column+',
   // isolating: true,
-  defining: true,
-  atom: true,
+  // defining: true,
+  // atom: true,
   parseHTML: () => [{ tag: '[tiptap-is="columns"]' }],
   addAttributes: () => ({
     gap: { parseHTML: el => el.getAttribute('gap') ? +el.getAttribute('gap')! : 0 },
@@ -51,10 +51,12 @@ const El = props => <div {...props} />
 
 export const ColExt = Node.create({
   name: 'column',
-  group: 'block',
+  // group: 'block',
   content: 'block+',
-  // defining: true,
+  // content: 'paragraph block*',
+  defining: true,
   // isolating: true,
+  atom: true,
   parseHTML: () => [{ tag: '[tiptap-is="column"]' }],
   addAttributes: () => ({
     style: { parseHTML: el => `padding: 12px 0; ${el.style.cssText}` },

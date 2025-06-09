@@ -87,3 +87,12 @@
   cursor: ew-resize;
   cursor: col-resize;
 }
+
+pre  > code {
+  display: block !important;
+  &::before {
+    content: ' ';
+    display: inline-block;
+    width: 0;
+  }
+}

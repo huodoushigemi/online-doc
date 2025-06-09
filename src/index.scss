@@ -118,22 +118,26 @@ img.has-focus {
   @apply max-w-full outline-(2 solid blue);
 }
 
-.is-empty:not(table)::before {
+.is-empty:not(table,pre)::before {
   content: attr(data-placeholder);
-  position: absolute;
-  // float: left;
-  // color: #adb5bd;
+  // position: absolute;
+  display: inline-block;
+  width: 0px;
+  white-space: nowrap;
   pointer-events: none;
   opacity: .30;
 }
 
 .li {
-  @apply cursor-pointer;
+  @apply relative cursor-pointer;
   &:hover, &.hover {
-    @apply bg-gray/15;
+    @apply bg-gray/20;
   }
-  &.selected, &.active {
-    @apply bg-gray/10;
+  &:active, &.selected, &.active {
+    &::before {
+      content: '';
+      @apply absolute inset-0 rd-inherit bg-gray/15;
+    }
   }
 }
 
