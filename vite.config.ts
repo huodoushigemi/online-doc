@@ -23,8 +23,14 @@ export default defineConfig({
     }),
     (await import('unplugin-auto-import/vite')).default({
       dts: './src/types/auto-imports.d.ts',
-      resolvers: [(await import('unplugin-icons/resolver')).default({ extension: 'jsx' })]
+      resolvers: [(await import('unplugin-icons/resolver')).default({ extension: 'jsx', customCollections: ['my'] })]
     }),
-    (await import('unplugin-icons/vite')).default({ autoInstall: true, compiler: 'solid' })
+    (await import('unplugin-icons/vite')).default({
+      autoInstall: true,
+      compiler: 'solid',
+      customCollections: {
+        my: (await import('unplugin-icons/loaders')).FileSystemIconLoader('src/assets')
+      }
+    })
   ],
 })

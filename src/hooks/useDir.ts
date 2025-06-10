@@ -15,8 +15,14 @@ interface UseDirOptions {
 export function useDir(options: UseDirOptions) {
   options = mergeProps({ loop: true }, options)
   const list = () => access(options.list) ?? access(options.ref)
+  const ref = () => access(options.ref) ?? access(options.list)
 
-  createEventListener(options.ref, 'keydown', e => {
+  createEffect(() => {
+    if (ref().tabIndex > -1) return
+    ref().tabIndex = 0
+  })
+
+  createEventListener(ref, 'keydown', e => {
     if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return
 
     e.stopPropagation()

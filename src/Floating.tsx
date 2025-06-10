@@ -67,7 +67,7 @@ export function BubbleMenu(attrs: AAA<BubbleMenuPluginProps, 'editor'> & Record<
   onMount(() => {
     menuEl.style.visibility = 'hidden'
     menuEl.style.position = 'absolute'
-    menuEl.style.zIndex = '1'
+    menuEl.style.zIndex = '9'
   })
 
   createEffect(() => {

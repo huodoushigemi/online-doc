@@ -23,6 +23,9 @@ importers:
       '@solid-primitives/pointer':
         specifier: ^0.3.1
         version: 0.3.1(solid-js@1.9.7)
+      '@solid-primitives/props':
+        specifier: ^3.2.1
+        version: 3.2.1(solid-js@1.9.7)
       '@solid-primitives/resize-observer':
         specifier: ^2.1.1
         version: 2.1.1(solid-js@1.9.7)
@@ -614,6 +617,11 @@ packages:
 
   '@solid-primitives/pointer@0.3.1':
     resolution: {integrity: sha512-PYpS27ewAvxr8B5f0IoGTgQNEXF4cYLr5a5jjcZ5vc5Md7E2rP/FznRD87WnWszNjZ9zOoXGq/TjkcV2ELngOg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/props@3.2.1':
+    resolution: {integrity: sha512-SuTuCctLLZbUL1QyWamQGWSWPIgoc/gXt5kL8P2yLhb51f9Dj+WHxU0shXBjzx7z+hDc5KtheQgM4NnJqQJi2A==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -2121,6 +2129,11 @@ snapshots:
     dependencies:
       '@solid-primitives/event-listener': 2.4.1(solid-js@1.9.7)
       '@solid-primitives/rootless': 1.5.1(solid-js@1.9.7)
+      '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
+      solid-js: 1.9.7
+
+  '@solid-primitives/props@3.2.1(solid-js@1.9.7)':
+    dependencies:
       '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
       solid-js: 1.9.7
 

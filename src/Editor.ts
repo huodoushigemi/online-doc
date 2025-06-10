@@ -78,7 +78,7 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
         }),
         Focus,
         TableKit.configure({
-          table: { resizable: true }
+          table: { resizable: true, cellMinWidth: 50 },
         }),
         Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
         Placeholder.configure({

@@ -1,6 +1,6 @@
+import { children, createEffect, createMemo, splitProps } from 'solid-js'
+import { Portal } from 'solid-js/web'
 import { autoUpdate, createFloating, type createFloatingProps, type ReferenceType } from 'floating-ui-solid'
-import { children, createEffect, createMemo, splitProps } from 'solid-js';
-import { Portal } from 'solid-js/web';
 
 export function Popover(attrs: { reference: ReferenceType; floating?: HTMLElement; portal?: HTMLElement } & createFloatingProps) {
   const [_, props] = splitProps(attrs, ['reference', 'floating'])

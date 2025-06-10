@@ -11,6 +11,7 @@ import { Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
 import { VDir } from './hooks/useDir'
 import { useDark } from './hooks'
+import { Menu } from './components/Menu'
 
 const log = (a) => console.log(a)
 
@@ -76,25 +77,32 @@ function App() {
     <div class=''>
       <wc-mdit theme={`github-${isDark() ? 'dark' : 'light'}`} no-shadow={true} />
 
+      {/* <Menu class='w-100' items={nodes} /> */}
+
       {editor().view.dom}
 
       <FloatingMenu editor={editor()}>
         {search => (
-          <div class='menu py-1' use:VDir={{ ref: editor().view.dom, defaultFirst: true, options: { capture: true } }}>
-            <For each={nodes.filter(e => e.label.includes(search()) || e.kw.includes(search()))}>
-              {(node, index) => (
-                <div class={`li flex aic mx-1 px-2 py-1 rd-2`} onClick={() => node.cb()} data-index={index()}>
-                  <div class='flex aic mr-2.5'><Dynamic component={node.icon} /></div>
-                  {node.label}
-                </div>
-              )}
-            </For>
-          </div>
+          // <div class='menu py-1' use:VDir={{ ref: editor().view.dom, defaultFirst: true, options: { capture: true } }}>
+          //   <For each={nodes.filter(e => e.label.includes(search()) || e.kw.includes(search()))}>
+          //     {(node, index) => (
+          //       <div class={`li flex aic mx-1 px-2 py-1 rd-2`} onClick={() => node.cb()} data-index={index()}>
+          //         <div class='flex aic mr-2.5'><Dynamic component={node.icon} /></div>
+          //         {node.label}
+          //       </div>
+          //     )}
+          //   </For>
+          // </div>
+          <Menu
+            density='comfortable'
+            items={nodes.filter(e => e.label?.includes(search()) || e.kw?.includes(search()))}
+            usedir={{ ref: editor().view.dom, defaultFirst: true, options: { capture: true } }}
+          />
         )}
       </FloatingMenu>
 
       <BubbleMenu editor={editor()} shouldShow={({ editor }) => editor.state.selection.from != editor.state.selection.to && !editor.isActive('image')}>
-        <div class='menu-x flex aic lh-1em z-1'>
+        <div class='menu-x flex aic lh-1em'>
           <For each={marks}>
             {node => {
               return (
