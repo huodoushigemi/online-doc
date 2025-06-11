@@ -19,7 +19,7 @@ const content2 = await import('https://huodoushigemi.github.io/rich-editor/funct
 ## 特征
 
 - [x] 开源免费，本地部署
-- [x] 无需额外安装依赖，一行代码接入现有项目
+- [x] 免安装依赖，一行代码接入现有项目
 - [ ] 支持多种格式导出 `docx` `pdf` `html` `md` `png` `svg`
 - [ ] AI 智能辅助
 - [ ] 多人实时编辑

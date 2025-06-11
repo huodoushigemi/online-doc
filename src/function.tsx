@@ -8,7 +8,8 @@ export async function openDoc(options = {}) {
     const content = await loadContent(options)
 
     const w = 794, h = 1123, x = window.innerWidth - w >> 1, y = window.innerHeight - h >> 1
-    const win = window.open(`/?loadModule=/src/online`, '', `popup,width=${w},height=${h},left=${x},top=${y}`)!
+    const online = './online.js'
+    const win = window.open(`/?loadModule=${online}`, '', `popup,width=${w},height=${h},left=${x},top=${y}`)!
 
     const cleans = [
       on('message', e => {

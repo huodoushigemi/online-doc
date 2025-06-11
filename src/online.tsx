@@ -42,7 +42,7 @@ function loadContent(data) {
   return data.content || (data.src ? fetch(data.src, { method: 'GET' }).then(e => e.text()) : '')
 }
 
-const view = <header class='sticky top-0 z-1 bg-[--header-bg]' />
+const view = <header class='fixed top-0 w-full z-1 bg-[--header-bg]' />
 document.body.prepend(view)
 
 render(() => (
