@@ -342,7 +342,7 @@ function w(e, t, n, s) {
   } else e.insertBefore(o, n);
   return [o];
 }
-var ne = /* @__PURE__ */ V('<header class="sticky top-0 z-1 bg-[--header-bg]">'), se = /* @__PURE__ */ V('<div class="flex h-12"><div ml-2 class="flex items-center"><img src=/vite.svg><span ml-2 self-center>在线文档服务</span></div><div class="ml-a self-center mr-2"self-center><button class=bg-blue bg-blue style=width:120px;line-height:1.5>确 认');
+var ne = /* @__PURE__ */ V('<header class="sticky top-0 z-1 bg-[--header-bg]">'), se = /* @__PURE__ */ V('<div class="flex h-12"><div ml-2 class="flex items-center"><img src=./vite.svg><span ml-2 self-center>在线文档服务</span></div><div class="ml-a self-center mr-2"self-center><button class=bg-blue bg-blue style=width:120px;line-height:1.5>确 认');
 window.dispatchEvent(new Event("initialized"));
 const E = {
   content: (e) => editor.commands.setContent(e.content)

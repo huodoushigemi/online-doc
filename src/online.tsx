@@ -48,7 +48,7 @@ document.body.prepend(view)
 render(() => (
   <div class='flex h-12'>
     <div ml-2 class='flex items-center'>
-      <img src='/vite.svg' />
+      <img src='./vite.svg' />
       <span ml-2 self-center>在线文档服务</span>
     </div>
     <div class='ml-a self-center mr-2' self-center>
