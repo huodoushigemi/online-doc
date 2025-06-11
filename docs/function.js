@@ -1,34 +1,34 @@
-async function v(e = {}) {
+async function x(e = {}) {
   return new Promise(async (t, i) => {
     const r = {
       update: (n) => {
       },
-      ok: (n) => (t(n.content), d())
-    }, l = await $(e), c = 794, a = 1123, h = window.innerWidth - c >> 1, f = window.innerHeight - a >> 1, s = new URL(import.meta.url).pathname.split("/"), m = (s.pop(), s.push("online.js"), s.join("/")), o = window.open(`/?loadModule=${m}`, "", `popup,width=${c},height=${a},left=${h},top=${f}`), y = [w("message", (n) => {
-      var p;
-      const [g, E, L] = ((u) => Array.isArray(u) ? u : [])(JSON.parse(n.data));
-      g == "online-doc" && n.source != window && ((p = r[E]) == null || p.call(r, L));
-    }), w("beforeunload", () => {
+      ok: (n) => (t(n.content), p())
+    }, h = await v(e), s = 794, c = 1123, f = window.innerWidth - s >> 1, m = window.innerHeight - c >> 1, a = import.meta.url.split("/"), d = (a.pop(), a.join("/")), y = new URL(d + "/online.js").pathname, o = window.open(`${d}/?loadModule=${y}`, "", `popup,width=${s},height=${c},left=${f},top=${m}`), g = [l("message", (n) => {
+      var u;
+      const [E, $, L] = ((w) => Array.isArray(w) ? w : [])(JSON.parse(n.data));
+      E == "online-doc" && n.source != window && ((u = r[$]) == null || u.call(r, L));
+    }), l("beforeunload", () => {
       o.close();
     })];
     await new Promise((n) => o.addEventListener("initialized", n, {
       once: !0
     })), o.postMessage(JSON.stringify(["content", {
-      content: l
-    }])), o.addEventListener("unload", () => (i(), d()));
-    function d() {
-      o.close(), y.forEach((n) => n());
+      content: h
+    }])), o.addEventListener("unload", () => (i(), p()));
+    function p() {
+      o.close(), g.forEach((n) => n());
     }
   });
 }
-function w(e, t, i = window) {
+function l(e, t, i = window) {
   return i.addEventListener(e, t), () => i.removeEventListener(e, t);
 }
-function $(e) {
+function v(e) {
   return e.content || (e.src ? fetch(e.src, {
     method: "GET"
   }).then((t) => t.text()) : "");
 }
 export {
-  v as openDoc
+  x as openDoc
 };

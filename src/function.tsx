@@ -6,11 +6,12 @@ export async function openDoc(options = {}) {
     }
 
     const content = await loadContent(options)
-
+    
     const w = 794, h = 1123, x = window.innerWidth - w >> 1, y = window.innerHeight - h >> 1
-    const ps = new URL(import.meta.url).pathname.split('/')
-    const online = (ps.pop(), ps.push('online.js'), ps.join('/'))
-    const win = window.open(`/?loadModule=${online}`, '', `popup,width=${w},height=${h},left=${x},top=${y}`)!
+    const path = import.meta.url.split('/')
+    const base = (path.pop(), path.join('/'))
+    const online = new URL(base + '/online.js').pathname
+    const win = window.open(`${base}/?loadModule=${online}`, '', `popup,width=${w},height=${h},left=${x},top=${y}`)!
 
     const cleans = [
       on('message', e => {
