@@ -1,33 +1,33 @@
 async function v(e = {}) {
-  return new Promise(async (o, i) => {
+  return new Promise(async (t, i) => {
     const r = {
       update: (n) => {
       },
-      ok: (n) => (o(n.content), d())
-    }, l = await m(e), s = 794, c = 1123, f = window.innerWidth - s >> 1, p = window.innerHeight - c >> 1, t = window.open("/?loadModule=./online.js", "", `popup,width=${s},height=${c},left=${f},top=${p}`), h = [w("message", (n) => {
-      var a;
-      const [y, g, E] = ((u) => Array.isArray(u) ? u : [])(JSON.parse(n.data));
-      y == "online-doc" && n.source != window && ((a = r[g]) == null || a.call(r, E));
+      ok: (n) => (t(n.content), d())
+    }, l = await $(e), c = 794, a = 1123, h = window.innerWidth - c >> 1, f = window.innerHeight - a >> 1, s = new URL(import.meta.url).pathname.split("/"), m = (s.pop(), s.push("online.js"), s.join("/")), o = window.open(`/?loadModule=${m}`, "", `popup,width=${c},height=${a},left=${h},top=${f}`), y = [w("message", (n) => {
+      var p;
+      const [g, E, L] = ((u) => Array.isArray(u) ? u : [])(JSON.parse(n.data));
+      g == "online-doc" && n.source != window && ((p = r[E]) == null || p.call(r, L));
     }), w("beforeunload", () => {
-      t.close();
+      o.close();
     })];
-    await new Promise((n) => t.addEventListener("initialized", n, {
+    await new Promise((n) => o.addEventListener("initialized", n, {
       once: !0
-    })), t.postMessage(JSON.stringify(["content", {
+    })), o.postMessage(JSON.stringify(["content", {
       content: l
-    }])), t.addEventListener("unload", () => (i(), d()));
+    }])), o.addEventListener("unload", () => (i(), d()));
     function d() {
-      t.close(), h.forEach((n) => n());
+      o.close(), y.forEach((n) => n());
     }
   });
 }
-function w(e, o, i = window) {
-  return i.addEventListener(e, o), () => i.removeEventListener(e, o);
+function w(e, t, i = window) {
+  return i.addEventListener(e, t), () => i.removeEventListener(e, t);
 }
-function m(e) {
+function $(e) {
   return e.content || (e.src ? fetch(e.src, {
     method: "GET"
-  }).then((o) => o.text()) : "");
+  }).then((t) => t.text()) : "");
 }
 export {
   v as openDoc
