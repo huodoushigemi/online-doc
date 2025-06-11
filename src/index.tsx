@@ -14,3 +14,8 @@ const qs = Object.fromEntries(new URLSearchParams(location.search).entries())
 if (qs.loadModule) {
   import(/* @vite-ignore */ qs.loadModule)
 }
+
+
+export function xxx() {
+  console.log(import.meta.glob('./*.tsx'))
+}
