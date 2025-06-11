@@ -62,6 +62,7 @@ function App() {
     { label: '分割线', kw: 'hr', icon: () => <ILucideDivide />, cb: () => chain().setHorizontalRule().run() },
     { label: '列表', kw: 'list', icon: () => <ILucideList />, cb: () => chain().toggleBulletList().run() },
     { label: '任务列表', kw: 'todo', icon: () => <ILucideListTodo />, cb: () => chain().toggleTaskList().run() },
+    { label: 'Iframe', kw: 'iframe', icon: () => <ILucideAppWindow />, cb: () => chain().insertIframe({ src: 'https://element-plus.org/zh-CN/' }).run() },
   ]
 
   const marks = [
@@ -83,16 +84,6 @@ function App() {
 
       <FloatingMenu editor={editor()}>
         {search => (
-          // <div class='menu py-1' use:VDir={{ ref: editor().view.dom, defaultFirst: true, options: { capture: true } }}>
-          //   <For each={nodes.filter(e => e.label.includes(search()) || e.kw.includes(search()))}>
-          //     {(node, index) => (
-          //       <div class={`li flex aic mx-1 px-2 py-1 rd-2`} onClick={() => node.cb()} data-index={index()}>
-          //         <div class='flex aic mr-2.5'><Dynamic component={node.icon} /></div>
-          //         {node.label}
-          //       </div>
-          //     )}
-          //   </For>
-          // </div>
           <Menu
             density='comfortable'
             items={nodes.filter(e => e.label?.includes(search()) || e.kw?.includes(search()))}

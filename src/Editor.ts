@@ -5,12 +5,13 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { TableKit } from '@tiptap/extension-table'
-import { ColumnsKit } from './extensions/Columns'
 import { Focus, Placeholder } from '@tiptap/extensions'
 import { ListKit } from '@tiptap/extension-list'
 import Image from '@tiptap/extension-image'
 import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 import { useDark } from "./hooks"
+import { ColumnsKit } from './extensions/Columns'
+import { Iframe } from "./extensions/Iframe"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -70,6 +71,7 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
         CodeBlockShiki.configure({ defaultTheme: `github-${isDark() ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
         // Selection,
         ColumnsKit,
+        Iframe,
         ListKit.configure({
           bulletList: false,
           listItem: false,

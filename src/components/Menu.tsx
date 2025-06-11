@@ -25,7 +25,6 @@ export function Menu(props) {
     
     createEffect(() => {
       floating() && Object.assign(floating()!.style, style()?.() ?? {})
-      console.log(child())
     })
 
     const req = createMutable({ loading: false })
@@ -55,7 +54,7 @@ export function Menu(props) {
     is: _Li,
     processProps: props => {
       let i = 0
-      Array.isArray(props.children) && props.children.forEach((e) => !e.is && typeof e == 'object' && (e['data-index'] ??= i++))
+      Array.isArray(props.children) && props.children.forEach((e) => !e.is && typeof e == 'object' && (e['data-index'] = i++))
       return props
     }
   })
@@ -69,5 +68,5 @@ export function Menu(props) {
     </div>
   )
   
-  return Li(mergeProps(props, { is: _Menu, items: void 0, children: props.items }))
+  return <Li {...props} is={_Menu} children={props.items} />
 }

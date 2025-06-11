@@ -16,7 +16,7 @@ export function createRender({ is, processProps = e => e } = {}) {
     children
   )
 
-  return any => Array.isArray(any) ? List(any) : Render(any)
+  return Render
 }
 
 export const Render = createRender({ is: 'div' })

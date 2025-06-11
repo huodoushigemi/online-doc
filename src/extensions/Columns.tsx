@@ -1,8 +1,6 @@
 import { Editor, findChildren, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
-import { render } from 'solid-js/web'
-import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { Columns } from '../components/Columns'
-import { onMount } from 'solid-js'
+import { createNodeView } from './NodeView';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -35,6 +33,7 @@ export const ColumnsKit = Node.create({
           ...Array(cols).fill(0).map((e, i) => `<div tiptap-is='column'><p></p></div>`),
         `</div>`
       ].join(''))
+      return true
     },
     addColAfter: ({ index = 0, pos = 0 } = {}) => (e) => {
       const node = e.state.doc.resolve(pos + 1).node().children[index + 1]
@@ -59,29 +58,3 @@ const ColExt = Node.create({
   addNodeView: () => createNodeView(El, { syncAttrs: ['style'], contentDOM: el => el }),
 })
 
-function createNodeView(Comp, options?: { syncAttrs?: string[]; contentDOM?(el: HTMLElement): HTMLElement }): NodeViewRenderer {
-  return (props) => {
-    let root = document.createElement('div')
-    // const dispose = render(() => <Comp {...props.HTMLAttributes} tiptapNode={props} />, root)
-    const dispose = render(() => {
-      let el!: HTMLElement
-      if (options?.syncAttrs?.length) {
-        const sync = () => options!.syncAttrs!.forEach(k => props.node.attrs[k] = el.getAttribute(k))
-        onMount(sync)
-        createMutationObserver(()  => el, { attributes: true }, () => {
-          options!.syncAttrs!.forEach(k => props.node.attrs[k] = el.getAttribute(k))
-        })
-      }
-      return <Comp ref={el} {...props.HTMLAttributes} />
-    }, root)
-    const dom = root.firstElementChild! as HTMLElement
-    dom.remove()
-    root = void 0 as any
-    return {
-      dom,
-      get contentDOM() { return options?.contentDOM?.(dom) ?? (dom.classList.contains('is-editable') ? dom : dom.querySelector('.is-editable')) },
-      destroy: () => dispose(),
-      ignoreMutation: () => true,
-    }
-  }
-}
