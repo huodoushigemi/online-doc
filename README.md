@@ -13,7 +13,7 @@
 const content = `<p>我是富文本</p>`
 
 // 打开在线文档窗口，返回编辑后的内容
-const content2 = await import('https://huodoushigemi.github.io/rich-editor/function.js').then(e => e.openDoc({ content }))
+const content2 = await import('https://huodoushigemi.github.io/online-doc/function.js').then(e => e.openDoc({ content }))
 ```
 
 ## 特征
