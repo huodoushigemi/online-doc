@@ -3,15 +3,18 @@ import 'wc-mdit'
 import './App.scss'
 
 import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
-import useEditor, { chainReplace, useActive, useEditorTransaction, } from './Editor'
+import useEditor, { chainReplace, html2md, useActive, useEditorTransaction, } from './Editor'
 import type { ChainedCommands } from '@tiptap/core'
 import { Dynamic } from 'solid-js/web'
-import { chooseImage, file2base64 } from './utils'
-import { Popover } from './components/Popover'
+import { chooseImage, file2base64, html2docx, print } from './utils'
+import { Floating, Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
+import { saveAs } from 'file-saver'
 import { VDir } from './hooks/useDir'
 import { useDark } from './hooks'
 import { Menu } from './components/Menu'
+
+import {  } from 'tiptap-markdown'
 
 const log = (a) => console.log(a)
 
@@ -76,6 +79,25 @@ function App() {
 
   return (
     <div class=''>
+      <header class='sticky top-0 flex w-full h-12 z-1 bg-[--header-bg]'>
+        <div ml-2 class='flex items-center'>
+          <img id='logo' src='/vite.svg' />
+          <span id='title' ml-2 self-center>在线文档服务</span>
+        </div>
+        <div id='actions' class='flex aic ml-a self-center mr-2' self-center>
+          <Popover
+            placement='bottom-end'
+            reference={<button class='flex aic bg-blue'>导 出 <ILucideDownload class='ml-1' /></button>}
+            floating={() => <Menu class='mt-1 [&_svg]:text-lg ' density='comfortable' items={[
+              { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => saveAs(html2docx(editor().getHTML())) },
+              { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(`<div class='markdown-body'>${editor().getHTML()}</div>`) },
+              { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([editor().getHTML()], +new Date + '.html')) },
+              { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor().getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }]}
+            />}
+          />
+        </div>
+      </header>
+
       <wc-mdit theme={`github-${isDark() ? 'dark' : 'light'}`} no-shadow={true} />
 
       {/* <Menu class='w-100' items={nodes} /> */}
@@ -98,7 +120,7 @@ function App() {
             {node => {
               return (
                 <div class={`li flex aic ${node.isActive() && 'active'} p-1 my-1 rd-2`} onClick={() => node.active()}>
-                  <Popover
+                  <Floating
                     reference={<Dynamic component={node.icon} />}
                     floating={node.popover && node.isActive() ? <node.popover editor={editor()} on:click={e => e.stopPropagation()} /> : void 0}
                     placement='top' middleware={[offset(12)]}

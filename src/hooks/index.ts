@@ -1,7 +1,7 @@
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
-import { createRenderEffect, createRoot, createSignal } from 'solid-js'
+import { createEffect, createRenderEffect, createRoot, createSignal, onCleanup } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 
 interface UseDragOptions {
@@ -62,4 +62,18 @@ export function useDark() {
   const dark = createSignal(calc())
   createMutationObserver(document.documentElement, { attributes: true }, () => dark[1](calc()))
   return dark
+}
+
+export function useMemoAsync<T>(fn: () => Promise<T> | T, init?: Awaited<T>) {
+  const REJECT = Symbol()
+  const [val, setVal] = createSignal(init)
+  createEffect(async () => {
+    const ret = fn()
+    const v = ret instanceof Promise ? await new Promise((resolve) => {
+      ret.then(resolve)
+      onCleanup(() => resolve(REJECT))
+    }) : ret
+    v == REJECT || setVal(v)
+  })
+  return val
 }

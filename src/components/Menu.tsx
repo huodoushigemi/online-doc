@@ -40,8 +40,8 @@ export function Menu(props) {
     const [_, e] = splitProps(_e, ['children'])
     const child = children(() => _.children)
     return (
-      <div ref={el} use:pointerHover={setHover} {...combineProps({ class: `li flex aic mx-1 pl-1 pr-4 py-1 rd-2` }, e)} cb={null} icon={null} onClick={onClick}>
-        <div class={`flex aic ${props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} w-1.2em h-1.2em`}>
+      <div ref={el} use:pointerHover={setHover} {...combineProps({ class: `li flex aic mx-1 pl-1 pr-4 py-1 rd-2` }, e)} cb={null} icon={null} on:click={onClick}>
+        <div class={`flex aic ${props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
           {req.loading ? <IMyLoading /> : e.icon}
         </div>
         {e.label}
@@ -63,6 +63,7 @@ export function Menu(props) {
     <div
       {...combineProps({ class: 'menu max-h-100 overflow-auto' }, props)}
       use:VDir={props.usedir}
+      on:click={e => e.stopPropagation()}
     >
       {props.children}
     </div>

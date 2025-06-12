@@ -1,5 +1,5 @@
 {
-  "name": "rich-editor",
+  "name": "online-doc",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -27,14 +27,17 @@
     "@tiptap/pm": "3.0.0-beta.5",
     "@tiptap/starter-kit": "3.0.0-beta.5",
     "es-toolkit": "^1.38.0",
+    "file-saver": "^2.0.5",
     "floating-ui-solid": "^1.0.63",
     "shiki": "^3.6.0",
     "solid-js": "^1.9.5",
     "tiptap-extension-code-block-shiki": "^0.5.1",
+    "tiptap-markdown": "^0.8.10",
     "wc-mdit": "^0.0.5"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.45",
+    "@iconify-json/vscode-icons": "^1.2.22",
     "@unocss/transformer-directives": "^66.1.3",
     "prosemirror-view": "^1.39.3",
     "sass": "^1.89.0",

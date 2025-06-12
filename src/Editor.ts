@@ -1,4 +1,4 @@
-import { access, type MaybeAccessor } from "@solid-primitives/utils"
+import { access, type MaybeAccessor } from '@solid-primitives/utils'
 import { createMemo, createEffect, createSignal, onCleanup } from "solid-js"
 import type { EditorOptions } from '@tiptap/core'
 import { Editor } from '@tiptap/core'
@@ -60,39 +60,7 @@ export type EditorRef = Editor | ((editor: Editor) => void)
 export default function useEditor(props?: () => Partial<EditorOptions>) {
   const [isDark] = useDark()
   return createMemo(() => {
-    const instance = new Editor({
-      ...props?.(),
-      extensions: [
-        TextStyleKit,
-        StarterKit.configure({
-          link: { openOnClick: false },
-          codeBlock: false,
-        }),
-        CodeBlockShiki.configure({ defaultTheme: `github-${isDark() ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
-        // Selection,
-        ColumnsKit,
-        Iframe,
-        ListKit.configure({
-          bulletList: false,
-          listItem: false,
-          orderedList: false,
-          listKeymap: false,
-        }),
-        Focus,
-        TableKit.configure({
-          table: { resizable: true, cellMinWidth: 50 },
-        }),
-        Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
-        Placeholder.configure({
-          placeholder: 'Type / to browse options',
-        }),
-        // FloatingMenu.configure({
-        //   shouldShow: ({ editor, view, state, oldState }) => {
-        //     return editor.isActive('paragraph')
-        //   }
-        // })
-      ]
-    })
+    const instance = tiptap(props?.(), isDark())
 
     onCleanup(() => {
       instance.destroy()
@@ -100,4 +68,51 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
 
     return instance
   })
+}
+
+
+function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
+  return new Editor({
+    ...props,
+    extensions: [
+      TextStyleKit,
+      StarterKit.configure({
+        link: { openOnClick: false },
+        codeBlock: false,
+      }),
+      CodeBlockShiki.configure({ defaultTheme: `github-${isDark ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
+      // Selection,
+      ColumnsKit,
+      Iframe,
+      ListKit.configure({
+        bulletList: false,
+        listItem: false,
+        orderedList: false,
+        listKeymap: false,
+      }),
+      Focus,
+      TableKit.configure({
+        table: { resizable: true, cellMinWidth: 50 },
+      }),
+      Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { style: 'max-width: 100%', contenteditable: true } }),
+      Placeholder.configure({
+        placeholder: 'Type / to browse options',
+      }),
+      // FloatingMenu.configure({
+      //   shouldShow: ({ editor, view, state, oldState }) => {
+      //     return editor.isActive('paragraph')
+      //   }
+      // })
+      ...props?.extensions ?? []
+    ]
+  })
+}
+
+export async function html2md(html: string) {
+  const { Markdown } = await import('tiptap-markdown')
+  const editor = tiptap({ extensions: [Markdown] })
+  editor.commands.setContent(html)
+  const ret = editor.storage.markdown.getMarkdown()
+  editor.destroy()
+  return ret
 }

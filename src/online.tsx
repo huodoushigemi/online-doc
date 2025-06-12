@@ -42,17 +42,6 @@ function loadContent(data) {
   return data.content || (data.src ? fetch(data.src, { method: 'GET' }).then(e => e.text()) : '')
 }
 
-const view = <header class='fixed top-0 w-full z-1 bg-[--header-bg]' />
-document.body.prepend(view)
-
 render(() => (
-  <div class='flex h-12'>
-    <div ml-2 class='flex items-center'>
-      <img src='./vite.svg' />
-      <span ml-2 self-center>在线文档服务</span>
-    </div>
-    <div class='ml-a self-center mr-2' self-center>
-      <button class='bg-blue' bg-blue style='width: 120px; line-height: 1.5' onClick={ok}>确 认</button>
-    </div>
-  </div>
-), view)
+  <button class='ml-4 bg-blue' bg-blue style='width: 120px' onClick={ok}>保 存</button>
+), document.querySelector('#actions'))
