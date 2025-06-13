@@ -26,9 +26,15 @@ export function chooseImage() {
   return chooseFile()
 }
 
-export async function html2docx(html: string) {
-  alert('敬请期待')
-  throw ''
+export async function html2docx(content: string) {
+  const { inline, initWasm } = await import('@css-inline/css-inline-wasm')
+  const wasm = fetch(await import('@css-inline/css-inline-wasm/index_bg.wasm?url').then((e) => e.default))
+  await initWasm(wasm).catch(() => {})
+
+  content = inline(content + getStyles())
+  console.log(content)
+  const blob = await import('html-docx-js-typescript').then((e) => e.asBlob(content))
+  return blob as Blob
 }
 
 export async function print(html: string) {
@@ -41,4 +47,8 @@ export async function print(html: string) {
   await delay(300)
   iframe.contentWindow.print()
   iframe.remove()
+}
+
+export function getStyles() {
+  return [...document.querySelectorAll('style'), ...document.querySelectorAll('link[rel="stylesheet"]')].map(e => e.outerHTML).join('\n')
 }

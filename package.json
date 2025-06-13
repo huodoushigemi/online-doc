@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@css-inline/css-inline-wasm": "^0.14.3",
     "@floating-ui/dom": "^1.7.0",
     "@solid-primitives/bounds": "^0.1.1",
     "@solid-primitives/event-listener": "^2.4.1",
@@ -29,6 +30,7 @@
     "es-toolkit": "^1.38.0",
     "file-saver": "^2.0.5",
     "floating-ui-solid": "^1.0.63",
+    "html-docx-js-typescript": "^0.1.5",
     "shiki": "^3.6.0",
     "solid-js": "^1.9.5",
     "tiptap-extension-code-block-shiki": "^0.5.1",

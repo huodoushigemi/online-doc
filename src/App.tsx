@@ -6,7 +6,7 @@ import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
 import useEditor, { chainReplace, html2md, useActive, useEditorTransaction, } from './Editor'
 import type { ChainedCommands } from '@tiptap/core'
 import { Dynamic } from 'solid-js/web'
-import { chooseImage, file2base64, html2docx, print } from './utils'
+import { chooseImage, file2base64, getStyles, html2docx, print } from './utils'
 import { Floating, Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
 import { saveAs } from 'file-saver'
@@ -55,6 +55,8 @@ function App() {
     chain().setImage({ src }).run()
   }
 
+  const getHTML = (css?) => `<div class='markdown-body ${editor().view.dom.className}'>${editor().getHTML()}</div>`
+
   const nodes = [
     { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => chain().insertColumns().run() },
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
@@ -89,9 +91,9 @@ function App() {
             placement='bottom-end'
             reference={<button class='flex aic bg-blue'>导 出 <ILucideDownload class='ml-1' /></button>}
             floating={() => <Menu class='mt-1 [&_svg]:text-lg ' density='comfortable' items={[
-              { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => saveAs(html2docx(editor().getHTML())) },
-              { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(`<div class='markdown-body'>${editor().getHTML()}</div>`) },
-              { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([editor().getHTML()], +new Date + '.html')) },
+              { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => html2docx(getHTML()).then(e => saveAs(e, +new Date + '.docx')) },
+              { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(getHTML()) },
+              { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([getHTML(1) + getStyles()], +new Date + '.html')) },
               { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor().getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }]}
             />}
           />
