@@ -1,37 +1,30 @@
-import { For } from 'solid-js'
-import 'wc-mdit'
+import { createEffect, For } from 'solid-js'
 import './App.scss'
 
 import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
 import useEditor, { chainReplace, html2md, useActive, useEditorTransaction, } from './Editor'
 import type { ChainedCommands } from '@tiptap/core'
-import { Dynamic } from 'solid-js/web'
+import { Dynamic, Portal } from 'solid-js/web'
 import { chooseImage, file2base64, getStyles, html2docx, print } from './utils'
 import { Floating, Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
 import { saveAs } from 'file-saver'
 import { VDir } from './hooks/useDir'
-import { useDark } from './hooks'
+import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
-
-import {  } from 'tiptap-markdown'
 
 const log = (a) => console.log(a)
 
+const [isDark] = useDark()
+const theme = useMemoAsync(() => isDark()
+  ? import('wc-mdit/dist/theme/github-dark.css?raw').then(e => e.default)
+  : import('wc-mdit/dist/theme/github-light.css?raw').then(e => e.default)
+)
+
 function App() {
-  const [isDark] = useDark()
 
   const editor = useEditor(() => ({
-    content: `
-    <div tiptap-is="columns" gap=24>
-      <div tiptap-is='column'>1</div>
-      <div tiptap-is='column'>2</div>
-      <div tiptap-is='column'>3</div>
-      <div tiptap-is='column'>4</div>
-    </div>
-    <p>qweasd</p>
-    <a href="xxx">123456</a>
-    `
+    content: `<h1>wc-mdit</h1><p>A markdown-to-html web component.</p><h2>⚙️ Installation</h2><ul><li><p>npm</p></li></ul><pre><code>npm i wc-mdit</code></pre><ul><li><p>scripts</p></li></ul><pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"&gt;&lt;/script&gt;\n&lt;script src="https://cdn.jsdelivr.net/npm/wc-mdit/dist/wc-mdit.umd.js"&gt;&lt;/script&gt;</code></pre><h2>🚀 Example</h2><pre><code>import 'wc-mdit'\n\nfunction App() {\n  return (\n    &lt;wc-mdit content='# H1' theme='github-dark' /&gt;\n    // or\n    &lt;wc-mdit src="https://raw.githubusercontent.com/huodoushigemi/wc-mdit/refs/heads/main/README.md" theme='github-dark' /&gt;\n  )\n}</code></pre><h2>📄 Props</h2><table style="min-width: 150px"><colgroup><col style="min-width: 50px"><col style="min-width: 50px"><col style="min-width: 50px"></colgroup><tbody><tr><th colspan="1" rowspan="1"><p>Attribute</p></th><th colspan="1" rowspan="1"><p>Type</p></th><th colspan="1" rowspan="1"><p>Description</p></th></tr><tr><td colspan="1" rowspan="1"><p>src</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>URL to external markdown file.</p></td></tr><tr><td colspan="1" rowspan="1"><p>content</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>theme</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>css</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p><code>&lt;style&gt;{css}&lt;/style&gt;</code></p></td></tr><tr><td colspan="1" rowspan="1"><p>no-shadow</p></td><td colspan="1" rowspan="1"><p>Boolean</p></td><td colspan="1" rowspan="1"><p>If set, renders and stamps into <strong>light DOM</strong> instead. Please know what you are doing.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-class</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Class names forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-style</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Style forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>options</p></td><td colspan="1" rowspan="1"><p>Object</p></td><td colspan="1" rowspan="1"><p><code>new MarkdownIt(options)</code></p></td></tr></tbody></table><p></p>`
   }))
 
   window.editor = editor()
@@ -55,19 +48,20 @@ function App() {
     chain().setImage({ src }).run()
   }
 
-  const getHTML = (css?) => `<div class='markdown-body ${editor().view.dom.className}'>${editor().getHTML()}</div>`
+  const getHTML = (css?) => `<div class='markdown-body ${css && editor().view.dom.className}' style='${editor().view.dom.style}'>${editor().getHTML()}</div>`
 
   const nodes = [
     { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => chain().insertColumns().run() },
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
     { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => uploadImage() },
-    { label: '文件', kw: 'file', icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
+    { label: '文件', kw: 'file', 'attr:disabled': true, icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
     { label: '代码块', kw: 'code', icon: () => <ILucideCode />, cb: () => chain().toggleCodeBlock().run() },
     { label: '引用', kw: 'blockquote', icon: () => <ILucideQuote />, cb: () => chain().toggleBlockquote().run() },
     { label: '分割线', kw: 'hr', icon: () => <ILucideDivide />, cb: () => chain().setHorizontalRule().run() },
     { label: '列表', kw: 'list', icon: () => <ILucideList />, cb: () => chain().toggleBulletList().run() },
     { label: '任务列表', kw: 'todo', icon: () => <ILucideListTodo />, cb: () => chain().toggleTaskList().run() },
     { label: 'Iframe', kw: 'iframe', icon: () => <ILucideAppWindow />, cb: () => chain().insertIframe({ src: 'https://element-plus.org/zh-CN/' }).run() },
+    { label: '表单', kw: 'form', 'attr:disabled': true, icon: () => <IMyForms />, cb: () => alert('敬请期待……') },
   ]
 
   const marks = [
@@ -79,32 +73,36 @@ function App() {
     { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), active: () => exec(e => e.toggleLink({ href: '' })), popover: LinkPane },
   ]
 
+  const exports = [
+    { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => html2docx(getHTML()).then(e => saveAs(e, +new Date + '.docx')) },
+    { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(getHTML()) },
+    { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([getHTML(1) + getStyles()], +new Date + '.html')) },
+    { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor().getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }
+  ]
+
   return (
     <div class=''>
-      <header class='sticky top-0 flex w-full h-12 z-1 bg-[--header-bg]'>
-        <div ml-2 class='flex items-center'>
+      <header class='sticky top-0 navbar min-h-0! h-12! z-9 box-border bg-[--header-bg]'>
+        <div class='flex items-center'>
           <img id='logo' src='/vite.svg' />
           <span id='title' ml-2 self-center>在线文档服务</span>
         </div>
-        <div id='actions' class='flex aic ml-a self-center mr-2' self-center>
+        <div id='actions' class='flex aic ml-a self-center' self-center>
           <Popover
             placement='bottom-end'
-            reference={<button class='flex aic bg-blue'>导 出 <ILucideDownload class='ml-1' /></button>}
-            floating={() => <Menu class='mt-1 [&_svg]:text-lg ' density='comfortable' items={[
-              { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => html2docx(getHTML()).then(e => saveAs(e, +new Date + '.docx')) },
-              { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(getHTML()) },
-              { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([getHTML(1) + getStyles()], +new Date + '.html')) },
-              { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor().getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }]}
+            reference={<button class='btn btn-soft btn-sm'>导 出 <ILucideDownload class='ml-1' /></button>}
+            floating={() => <Menu class='mt-1 [&_svg]:text-lg ' density='comfortable' items={exports}
             />}
           />
         </div>
       </header>
 
-      <wc-mdit theme={`github-${isDark() ? 'dark' : 'light'}`} no-shadow={true} />
-
-      {/* <Menu class='w-100' items={nodes} /> */}
-
-      {editor().view.dom}
+      {/* 编辑区域 */}
+      {/* <Portal useShadow={true}> */}
+        {editor().view.dom}
+        <style>{/*@once*/ useMemoAsync(() => import('./tiptap.scss?url').then(e => fetch(e.default, { method: 'GET' }).then(e => e.text()))) as unknown as string}</style>
+        <style>{/*@once*/ useMemoAsync(() => (isDark() ? import('wc-mdit/dist/theme/github-dark.css?raw') : import('wc-mdit/dist/theme/github-light.css?raw')).then(e => e.default)) as unknown as string}</style>
+      {/* </Portal> */}
 
       <FloatingMenu editor={editor()}>
         {search => (
@@ -117,7 +115,7 @@ function App() {
       </FloatingMenu>
 
       <BubbleMenu editor={editor()} shouldShow={({ editor }) => editor.state.selection.from != editor.state.selection.to && !editor.isActive('image')}>
-        <div class='menu-x flex aic lh-1em'>
+        <div class='tt-menu-x flex aic lh-1em'>
           <For each={marks}>
             {node => {
               return (

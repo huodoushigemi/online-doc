@@ -19,22 +19,18 @@ export function useEditorTransaction<T>(
 ): () => T {
   const [depend, update] = createSignal(undefined, { equals: false })
 
-  function forceUpdate() {
-    update()
-  }
-
   createEffect(() => {
     const editor = access(instance)
     if (editor) {
-      editor.on("transaction", forceUpdate)
-      onCleanup(() => editor.off("transaction", forceUpdate))
+      editor.on("transaction", update)
+      onCleanup(() => editor.off("transaction", update))
     }
   })
 
-  return () => {
+  return createMemo(() => {
     depend()
     return read(access(instance))
-  };
+  })
 }
 
 export function chainReplace(editor: Editor) {

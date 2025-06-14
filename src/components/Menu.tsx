@@ -61,13 +61,17 @@ export function Menu(props) {
 
   const _Menu = props => (
     <div
-      {...combineProps({ class: 'menu max-h-100 overflow-auto' }, props)}
+      {...combineProps({ class: 'tt-menu max-h-100 overflow-auto' }, props)}
       use:VDir={props.usedir}
       on:click={e => e.stopPropagation()}
     >
       {props.children}
     </div>
   )
+
+  createEffect(() => {
+    console.log('xxxx', props.items)
+  })
   
   return <Li {...props} is={_Menu} children={props.items} />
 }

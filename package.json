@@ -27,6 +27,8 @@
     "@tiptap/extensions": "3.0.0-beta.5",
     "@tiptap/pm": "3.0.0-beta.5",
     "@tiptap/starter-kit": "3.0.0-beta.5",
+    "@unocss/reset": "^66.2.0",
+    "daisyui": "5.0.40",
     "es-toolkit": "^1.38.0",
     "file-saver": "^2.0.5",
     "floating-ui-solid": "^1.0.63",
@@ -35,9 +37,10 @@
     "solid-js": "^1.9.5",
     "tiptap-extension-code-block-shiki": "^0.5.1",
     "tiptap-markdown": "^0.8.10",
-    "wc-mdit": "^0.0.5"
+    "wc-mdit": "^0.0.6"
   },
   "devDependencies": {
+    "@ameinhardt/unocss-preset-daisy": "^1.1.8",
     "@iconify-json/lucide": "^1.2.45",
     "@iconify-json/vscode-icons": "^1.2.22",
     "@unocss/transformer-directives": "^66.1.3",

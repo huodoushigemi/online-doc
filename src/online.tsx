@@ -43,5 +43,5 @@ function loadContent(data) {
 }
 
 render(() => (
-  <button class='ml-4 bg-blue' bg-blue style='width: 120px' onClick={ok}>保 存</button>
+  <button class='ml-4 px-8 btn btn-primary btn-sm' onClick={ok}>保 存</button>
 ), document.querySelector('#actions'))

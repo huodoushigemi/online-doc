@@ -10,8 +10,14 @@ export default defineConfig({
   plugins: [
     solid(),
     (await import('unocss/vite')).default({
+      content: {
+        pipeline: {
+          include: ["src/**/*.{js,ts,tsx}"],
+        },
+      },
       presets: [
-        (await import('unocss/preset-wind3')).default({ dark: 'media' }),
+        (await import('@ameinhardt/unocss-preset-daisy')).presetDaisy({ base: true, utils: true, logs: true, styled: true }),
+        (await import('unocss/preset-wind4')).default({ dark: 'media', preflights: { reset: false, theme: true } }),
         (await import('unocss/preset-attributify')).default(),
       ],
       transformers: [
@@ -20,7 +26,7 @@ export default defineConfig({
       ],
       shortcuts: {
         aic: 'items-center',
-      }
+      },
     }),
     (await import('unplugin-auto-import/vite')).default({
       dts: './src/types/auto-imports.d.ts',

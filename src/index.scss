@@ -131,12 +131,15 @@ img.has-focus {
       @apply absolute inset-0 rd-inherit bg-gray/15;
     }
   }
+  &.disabled, &[disabled] {
+    opacity: .4;
+  }
 }
 
-.menu {
+.tt-menu {
   @apply py-1 shadow-lg rd-2 space-y-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
 }
 
-.menu-x {
+.tt-menu-x {
   @apply px-1 shadow-lg rd-2 space-x-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
 }

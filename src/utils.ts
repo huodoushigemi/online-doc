@@ -18,6 +18,7 @@ export function chooseFile() {
         resolve(input.files[0])
       } else {}
     }
+    input.oncancel = reject
     input.click()
   })
 }
@@ -49,6 +50,6 @@ export async function print(html: string) {
   iframe.remove()
 }
 
-export function getStyles() {
-  return [...document.querySelectorAll('style'), ...document.querySelectorAll('link[rel="stylesheet"]')].map(e => e.outerHTML).join('\n')
+export function getStyles(el = document as ParentNode) {
+  return [...el.querySelectorAll('style'), ...el.querySelectorAll('link[rel="stylesheet"]')].map(e => e.outerHTML).join('\n')
 }
