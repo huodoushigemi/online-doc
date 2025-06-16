@@ -33,7 +33,6 @@ export async function html2docx(content: string) {
   await initWasm(wasm).catch(() => {})
 
   content = inline(content + getStyles())
-  console.log(content)
   const blob = await import('html-docx-js-typescript').then((e) => e.asBlob(content))
   return blob as Blob
 }

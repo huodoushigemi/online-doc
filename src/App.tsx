@@ -15,7 +15,7 @@ import { Menu } from './components/Menu'
 
 const log = (a) => console.log(a)
 
-const [isDark] = useDark()
+const [isDark, setDark] = useDark()
 const theme = useMemoAsync(() => isDark()
   ? import('wc-mdit/dist/theme/github-dark.css?raw').then(e => e.default)
   : import('wc-mdit/dist/theme/github-light.css?raw').then(e => e.default)
@@ -87,7 +87,10 @@ function App() {
           <img id='logo' src='/vite.svg' />
           <span id='title' ml-2 self-center>在线文档服务</span>
         </div>
-        <div id='actions' class='flex aic ml-a self-center' self-center>
+        <div id='actions' class='flex aic ml-a self-center space-x-4' self-center>
+          <button class='btn btn-circle btn-sm' onClick={() => setDark(v => !v)}>
+            {isDark() ? <ILucideMoonStar /> : <ILucideSunMoon />}
+          </button>
           <Popover
             placement='bottom-end'
             reference={<button class='btn btn-soft btn-sm'>导 出 <ILucideDownload class='ml-1' /></button>}
