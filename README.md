@@ -18,13 +18,19 @@ const editedContent = await import('https://huodoushigemi.github.io/online-doc/f
 ## 🌟 核心特性
 
 ✅ **开箱即用** - 完全开源免费，支持本地部署
+
 ✅ **轻量集成** - 无需安装依赖，一行代码即可接入
+
 ✅ **多格式导出** - 支持 `docx` | `pdf` | `html` | `md` | `png` | `svg`
+
 ✅ **主题定制** - 内置亮色/暗色主题
+
 <!-- ✅ **历史记录** - 完整的撤销/重做功能 -->
 
 ## 🚧 即将推出
 
 🔜 AI智能辅助写作
+
 🔜 多人实时协作编辑
+
 🔜 插件扩展系统
