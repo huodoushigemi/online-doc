@@ -1,9 +1,10 @@
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { createEventListener } from '@solid-primitives/event-listener'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
 import { createEffect, createRenderEffect, createRoot, createSignal, onCleanup } from 'solid-js'
 import { createMutable } from 'solid-js/store'
-import { makePersisted } from '@solid-primitives/storage'
+import { makePersisted, storageSync } from '@solid-primitives/storage'
 import { createPrefersDark } from '@solid-primitives/media'
 
 interface UseDragOptions {
@@ -60,12 +61,10 @@ export function toSignle<T extends Record<string, any>>(state: T, k: keyof T) {
 }
 
 export function useDark() {
-  // const calc = () => document.documentElement.className.includes('dark')
-  // const dark = createSignal(calc())
-
-  const dark = makePersisted(createSignal(createPrefersDark()()), { storage: localStorage, name: 'color-schema', serialize: v => v ? 'dark' : '', deserialize: v => v == 'dark' })
+  const dark = makePersisted(createSignal(createPrefersDark()()), { name: 'color-schema', storage: localStorage, sync: storageSync, serialize: v => v ? 'dark' : '', deserialize: v => v == 'dark' })
   createEffect(() => document.documentElement.classList[dark[0]() ? 'add' : 'remove']('dark'))
-  return dark
+  // window.addEventListener('storage', e => console.log(e.newValue, 'www'))
+  return [dark[0], v => (dark[1](v), window.dispatchEvent(new StorageEvent('storage', { key: 'color-schema', newValue: JSON.stringify })))]
 }
 
 export function useMemoAsync<T>(fn: () => Promise<T> | T, init?: Awaited<T>) {
