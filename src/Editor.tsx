@@ -1,4 +1,4 @@
-import { createMemo, createEffect, createSignal, onCleanup } from "solid-js"
+import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect } from "solid-js"
 import { Dynamic, Portal } from 'solid-js/web'
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
 import type { EditorOptions, ChainedCommands } from '@tiptap/core'
@@ -13,14 +13,16 @@ import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 import { useDark, useMemoAsync } from "./hooks"
 import { VDir } from './hooks/useDir'
 import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
-import { chooseImage, file2base64, getStyles, html2docx, print } from './utils'
+import { chooseImage, file2base64 } from './utils'
 import { Floating, Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
-import { saveAs } from 'file-saver'
 import { Menu } from './components/Menu'
 
 import { ColumnsKit } from './extensions/Columns'
 import { Iframe } from "./extensions/Iframe"
+
+import './index.scss'
+import 'virtual:uno.css'
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -126,19 +128,18 @@ export async function html2md(html: string) {
 export function TiptapEditor() {
   const [isDark] = useDark()
 
-  createEffect(() => {
-    console.log(isDark(), 'qweqwe')
-  })
-
   const editor = useEditor(() => ({
     content: `<h1>wc-mdit</h1><p>A markdown-to-html web component.</p><h2>⚙️ Installation</h2><ul><li><p>npm</p></li></ul><pre><code>npm i wc-mdit</code></pre><ul><li><p>scripts</p></li></ul><pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"&gt;&lt;/script&gt;\n&lt;script src="https://cdn.jsdelivr.net/npm/wc-mdit/dist/wc-mdit.umd.js"&gt;&lt;/script&gt;</code></pre><h2>🚀 Example</h2><pre><code>import 'wc-mdit'\n\nfunction App() {\n  return (\n    &lt;wc-mdit content='# H1' theme='github-dark' /&gt;\n    // or\n    &lt;wc-mdit src="https://raw.githubusercontent.com/huodoushigemi/wc-mdit/refs/heads/main/README.md" theme='github-dark' /&gt;\n  )\n}</code></pre><h2>📄 Props</h2><table style="min-width: 150px"><colgroup><col style="min-width: 50px"><col style="min-width: 50px"><col style="min-width: 50px"></colgroup><tbody><tr><th colspan="1" rowspan="1"><p>Attribute</p></th><th colspan="1" rowspan="1"><p>Type</p></th><th colspan="1" rowspan="1"><p>Description</p></th></tr><tr><td colspan="1" rowspan="1"><p>src</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>URL to external markdown file.</p></td></tr><tr><td colspan="1" rowspan="1"><p>content</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>theme</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>css</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p><code>&lt;style&gt;{css}&lt;/style&gt;</code></p></td></tr><tr><td colspan="1" rowspan="1"><p>no-shadow</p></td><td colspan="1" rowspan="1"><p>Boolean</p></td><td colspan="1" rowspan="1"><p>If set, renders and stamps into <strong>light DOM</strong> instead. Please know what you are doing.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-class</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Class names forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-style</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Style forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>options</p></td><td colspan="1" rowspan="1"><p>Object</p></td><td colspan="1" rowspan="1"><p><code>new MarkdownIt(options)</code></p></td></tr></tbody></table><p></p>`
   }))
 
-  window.editor = editor()
-  editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
-  editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
-  editor().view.dom.spellcheck = false
-  editor().commands.focus()
+  
+  createRenderEffect(() => {
+    window.editor = editor()
+    editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
+    editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
+    editor().view.dom.spellcheck = false
+    editor().commands.focus()
+  })
 
   const current = useEditorTransaction(editor, editor => editor.state.selection.$from.node())
   // const active = (k: string, v?: any) => useEditorTransaction(editor, editor => editor.commands.)
@@ -154,8 +155,6 @@ export function TiptapEditor() {
     const src = await chooseImage().then(file2base64)
     chain().setImage({ src }).run()
   }
-
-  const getHTML = (css?) => `<div class='markdown-body ${css && editor().view.dom.className}' style='${editor().view.dom.style}'>${editor().getHTML()}</div>`
 
   const nodes = [
     { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => chain().insertColumns().run() },
@@ -178,13 +177,6 @@ export function TiptapEditor() {
     { icon: () => <ILucideStrikethrough />, isActive: useActive(editor, 'strike'), active: () => exec(chain => chain.toggleStrike()) },
     { icon: () => <ILucideCode />, isActive: useActive(editor, 'code'), active: () => exec(chain => chain.toggleCode()) },
     { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), active: () => exec(e => e.toggleLink({ href: '' })), popover: LinkPane },
-  ]
-
-  const exports = [
-    { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => html2docx(getHTML()).then(e => saveAs(e, +new Date + '.docx')) },
-    { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(getHTML()) },
-    { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([getHTML(1) + getStyles()], +new Date + '.html')) },
-    { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor().getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }
   ]
 
   return (

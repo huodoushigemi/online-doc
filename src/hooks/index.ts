@@ -61,10 +61,11 @@ export function toSignle<T extends Record<string, any>>(state: T, k: keyof T) {
 }
 
 export function useDark() {
-  const dark = makePersisted(createSignal(createPrefersDark()()), { name: 'color-schema', storage: localStorage, sync: storageSync, serialize: v => v ? 'dark' : '', deserialize: v => v == 'dark' })
+  const get = v => v == 'dark', set = v => v ? 'dark' : ''
+  const dark = makePersisted(createSignal(createPrefersDark()()), { name: 'color-schema', storage: localStorage, sync: storageSync, serialize: set, deserialize: get })
   createEffect(() => document.documentElement.classList[dark[0]() ? 'add' : 'remove']('dark'))
-  // window.addEventListener('storage', e => console.log(e.newValue, 'www'))
-  return [dark[0], v => (dark[1](v), window.dispatchEvent(new StorageEvent('storage', { key: 'color-schema', newValue: JSON.stringify })))]
+  createEffect(() =>  window.dispatchEvent(new StorageEvent('storage', { key: 'color-schema', newValue: set(dark[0]()) })))
+  return dark
 }
 
 export function useMemoAsync<T>(fn: () => Promise<T> | T, init?: Awaited<T>) {

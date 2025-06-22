@@ -16,14 +16,19 @@ import { Menu } from './components/Menu'
 const log = (a) => console.log(a)
 
 const [isDark, setDark] = useDark()
-const theme = useMemoAsync(() => isDark()
-  ? import('wc-mdit/dist/theme/github-dark.css?raw').then(e => e.default)
-  : import('wc-mdit/dist/theme/github-light.css?raw').then(e => e.default)
-)
 
 createRenderEffect(() => {
   document.documentElement.setAttribute('data-theme', isDark() ? 'dark' : 'light')
 })
+
+const getHTML = (css?) => `<div class='markdown-body ${css && editor.view.dom.className}' style='${editor.view.dom.style}'>${editor.getHTML()}</div>`
+
+const exports = [
+  { label: 'Word', icon: <IVscodeIconsFileTypeWord />, cb: () => html2docx(getHTML()).then(e => saveAs(e, +new Date + '.docx')) },
+  { label: 'PDF', icon: <IVscodeIconsFileTypePdf2 />, cb: () => print(getHTML()) },
+  { label: 'HTML', icon: <IVscodeIconsFileTypeHtml />, cb: () => saveAs(new File([getHTML(1) + getStyles()], +new Date + '.html')) },
+  { label: 'MD', icon: <IVscodeIconsFileTypeMarkdown />, cb: () => html2md(editor.getHTML()).then(e => saveAs(new File([e], +new Date + '.md'))) }
+]
 
 function App() {
   return (
