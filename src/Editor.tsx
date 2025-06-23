@@ -23,6 +23,7 @@ import { Iframe } from "./extensions/Iframe"
 
 import './index.scss'
 import 'virtual:uno.css'
+import { FormKit } from "./extensions/Form"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -90,6 +91,7 @@ function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
       CodeBlockShiki.configure({ defaultTheme: `github-${isDark ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
       // Selection,
       ColumnsKit,
+      FormKit,
       Iframe,
       ListKit.configure({
         bulletList: false,
@@ -166,8 +168,8 @@ export function TiptapEditor() {
     { label: '分割线', kw: 'hr', icon: () => <ILucideDivide />, cb: () => chain().setHorizontalRule().run() },
     { label: '列表', kw: 'list', icon: () => <ILucideList />, cb: () => chain().toggleBulletList().run() },
     { label: '任务列表', kw: 'todo', icon: () => <ILucideListTodo />, cb: () => chain().toggleTaskList().run() },
-    { label: 'Iframe', kw: 'iframe', icon: () => <ILucideAppWindow />, cb: () => chain().insertIframe({ src: 'https://element-plus.org/zh-CN/' }).run() },
-    { label: '表单', kw: 'form', 'attr:disabled': true, icon: () => <IMyForms />, cb: () => alert('敬请期待……') },
+    { label: 'Iframe', kw: 'iframe', icon: () => <ILucideAppWindow />, cb: () => chain().insertForm({ src: 'https://element-plus.org/zh-CN/' }).run() },
+    { label: '表单', kw: 'form', icon: () => <IMyForms />, cb: () => chain().insertForm().run() },
   ]
 
   const marks = [

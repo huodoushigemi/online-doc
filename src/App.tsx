@@ -1,15 +1,10 @@
 import { createEffect, For, createRenderEffect } from 'solid-js'
 import './App.scss'
 
-import { BubbleMenu, FloatingMenu, ImageBubbleMenu, LinkPane } from './Floating'
-import useEditor, { chainReplace, html2md, useActive, useEditorTransaction, TiptapEditor } from './Editor'
-import type { ChainedCommands } from '@tiptap/core'
-import { Dynamic, Portal } from 'solid-js/web'
+import { html2md, TiptapEditor } from './Editor'
 import { chooseImage, file2base64, getStyles, html2docx, print } from './utils'
 import { Floating, Popover } from './components/Popover'
-import { offset } from 'floating-ui-solid'
 import { saveAs } from 'file-saver'
-import { VDir } from './hooks/useDir'
 import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
 
