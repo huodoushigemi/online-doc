@@ -118,7 +118,7 @@ export function ImageBubbleMenu(props: { editor: Editor, uploadImage: () => Prom
 
   return (
     <BubbleMenu editor={props.editor} shouldShow={({ editor, state }) => editor.isActive('image')} updateDelay={0}>
-      <div class='menu-x flex aic p-1'>
+      <div class='tt-menu-x flex aic p-1'>
         <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} />
         <div class='li flex aic p-1 rd-2' onClick={() => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run())}><ILucideUpload /></div>
       </div>
@@ -140,13 +140,17 @@ export function LinkPane(props: { editor: Editor }) {
     }
   }
 
+  createEffect(() => {
+    chain().updateAttributes('link', { target: attrs.target }).run()
+  })
+
   return (
-    <div class='menu-x flex aic p-1' {...props}>
+    <div class='tt-menu-x flex aic p-1' {...props}>
       <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'href')} />
       {/* <ILucideCornerDownLeft class='li flex aic p-1 rd-2' onClick={ok} />
       <div class='self-stretch ml-1! mr-.5! my-1 w-1px bg-gray/20' /> */}
-      <IconoirOpenNewWindow class='li flex aic p-1 rd-2' onClick={() => attrs.target = attrs.target ? '' : '_blank'} />
-      <ILucideTrash class='li flex aic p-1 rd-2' onClick={() => props.editor.chain().unsetLink().focus().run()} />
+      <IconoirOpenNewWindow class='li flex aic p-1 rd-2' on:click={() => attrs.target = attrs.target ? '' : '_blank'} />
+      <ILucideTrash class='li flex aic p-1 rd-2' on:click={() => chain().unsetLink().focus().run()} />
     </div>
   )
 }
