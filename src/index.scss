@@ -33,6 +33,10 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+img {
+  margin: 1rem 0;
+}
+
 .col-hand {
   --w: 4px;
   position: absolute;
@@ -136,7 +140,7 @@ img.has-focus {
   }
 }
 
-.tt-menu {
+.tt-menu:not(.tt-menu-x) {
   @apply py-1 shadow-lg rd-2 space-y-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
 }
 

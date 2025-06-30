@@ -40,8 +40,15 @@ export function Menu(props) {
     const [_, e] = splitProps(_e, ['children'])
     const child = children(() => _.children)
     return (
-      <div ref={el} use:pointerHover={setHover} {...combineProps({ class: `li flex aic mx-1 pl-1 pr-4 py-1 rd-2` }, e)} cb={null} icon={null} on:click={onClick}>
-        <div class={`flex aic ${props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
+      <div
+        ref={el}
+        use:pointerHover={setHover}
+        {...combineProps({ class: `li flex aic rd-2 ${props.x ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, e)}
+        cb={null}
+        icon={null}
+        on:click={onClick}
+      >
+        <div class={`flex aic ${props.x ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
           {req.loading ? <IMyLoading /> : e.icon}
         </div>
         {e.label}
@@ -73,5 +80,5 @@ export function Menu(props) {
     console.log('xxxx', props.items)
   })
   
-  return <Li {...props} is={_Menu} children={props.items} />
+  return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
 }

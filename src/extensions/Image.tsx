@@ -27,7 +27,7 @@ export const ImageKit = Node.create({
   parseHTML: () => [{ tag: 'img' }],
   addAttributes: () => ({
     src: {},
-    style: { default: 'max-width: 100%', parseHTML: el => `${el.style.cssText}` },
+    style: { default: 'display: block; max-width: 100%', parseHTML: el => `display: block; max-width: 100%; ${el.style.cssText}` },
   }),
   renderHTML: ({ node }) => ['img', { ...node.attrs }],
   addNodeView: () => createNodeView(e => <_Image {...e} />, { syncAttrs: ['src', 'style'] }),

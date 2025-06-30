@@ -2,12 +2,13 @@ import { Editor } from '@tiptap/core'
 import { BubbleMenuPlugin, type BubbleMenuPluginProps } from '@tiptap/extension-bubble-menu'
 import type { FloatingMenuPluginProps } from '@tiptap/extension-floating-menu'
 import { FloatingMenuPlugin } from '@tiptap/extension-floating-menu'
-import { createEffect, createMemo, createSignal, mergeProps, onCleanup, onMount, splitProps } from 'solid-js'
-import { Portal } from 'solid-js/web'
+import { createEffect, createMemo, createSignal, For, mergeProps, onCleanup, onMount, splitProps } from 'solid-js'
+import { Dynamic, Portal, render } from 'solid-js/web'
 import IconoirOpenNewWindow from './icons/IconoirOpenNewWindow'
 import { createMutable } from 'solid-js/store'
 import { useActive, useEditorTransaction } from './Editor'
 import { model, toSignle } from './hooks'
+import { Menu } from './components/Menu'
 
 type AAA<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
@@ -112,16 +113,34 @@ export function ImageBubbleMenu(props: { editor: Editor, uploadImage: () => Prom
   const _attrs = useEditorTransaction(props.editor, () => active() ? { ...props.editor.getAttributes('image') } : {})
   createEffect(() => Object.assign(attrs, _attrs()))
 
+  const aligns = {
+    get left() { return (e => e.includes('margin-right: auto') && !e.includes('margin-left: auto'))(_attrs().style || '') },
+    get right() { return (e => e.includes('margin-left: auto') && !e.includes('margin-right: auto'))(_attrs().style || '') },
+    get center() { return (e => e.includes('margin-left: auto') && e.includes('margin-right: auto'))(_attrs().style || '') },
+    set left(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: unset; margin-right: ${v ? 'auto' : ''};` }) },
+    set right(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : ''}; margin-right: unset;` }) },
+    set center(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : 'unset'}; margin-right: ${v ? 'auto' : 'unset'};` }) },
+  }
+
+  createEffect(() => {
+    console.log({..._attrs()})
+  })
+
+  const menus = [
+    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
+    { icon: () => <ILucideUpload />, cb: () => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run()) },
+    { icon: () => <ILucideAlignLeft />, isActive: () => aligns.left, cb: () => aligns.left = !aligns.left },
+    { icon: () => <ILucideAlignCenter />, isActive: () => aligns.center, cb: () => aligns.center = !aligns.center },
+    { icon: () => <ILucideAlignRight />, isActive: () => aligns.right, cb: () => aligns.right = !aligns.right },
+  ]
+
   function ok() {
     props.editor.chain().setImage(attrs).focus().run()
   }
 
   return (
     <BubbleMenu editor={props.editor} shouldShow={({ editor, state }) => editor.isActive('image')} updateDelay={0}>
-      <div class='tt-menu-x flex aic p-1'>
-        <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} />
-        <div class='li flex aic p-1 rd-2' onClick={() => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run())}><ILucideUpload /></div>
-      </div>
+      <Menu items={menus} x={true} />
     </BubbleMenu>
   )
 }
