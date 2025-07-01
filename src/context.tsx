@@ -1,7 +1,7 @@
 import { createMemo } from 'solid-js'
 import type { ChainedCommands, Editor } from '@tiptap/core'
 import { useActive, useEditorTransaction } from './Editor'
-import { unFn } from './utils'
+import { log, unFn } from './utils'
 import { isTextSelection } from '@tiptap/core'
 
 export const menus = (editor: Editor) => {
@@ -13,7 +13,7 @@ export const menus = (editor: Editor) => {
 
   const isText = useEditorTransaction(editor, editor => isTextSelection(editor.state.selection) && !editor.isActive('codeBlock'))
 
-  return createMemo(() => [
+  return createMemo(() => log([
     // 文本
     ...isText() ? [
       { icon: () => <ILucideBold />, isActive: useActive(editor, 'bold'), cb: () => exec(chain => chain.toggleBold())  },
@@ -29,5 +29,5 @@ export const menus = (editor: Editor) => {
 
     // 其他
     ...aaa.map(e => unFn(e)).flat()
-  ])
+  ]))
 }

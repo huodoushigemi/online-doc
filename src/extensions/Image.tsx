@@ -1,4 +1,4 @@
-import { createEffect, onCleanup } from 'solid-js'
+import { createEffect, createMemo, onCleanup } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { Editor, Node } from '@tiptap/core'
 import { createNodeView } from './NodeView'
@@ -46,7 +46,8 @@ export const ImageKit = Node.create({
 })
 
 export const menus = (editor: Editor) => {
-  const active = useActive(editor, 'image')
+  // const active = useActive(editor, 'image')
+  const active = useEditorTransaction(editor, () => editor.state.doc.nodeAt(editor.state.selection.from)?.type.name == 'image' && (editor.state.selection.to - editor.state.selection.from == 1))
   const attrs = createMutable({ src: '' })
   const _attrs = useEditorTransaction(editor, () => active() ? { ...editor.getAttributes('image') } : {})
   createEffect(() => Object.assign(attrs, _attrs()))
@@ -55,21 +56,25 @@ export const menus = (editor: Editor) => {
     get left() { return (e => e.includes('margin-right: auto') && !e.includes('margin-left: auto'))(_attrs().style || '') },
     get right() { return (e => e.includes('margin-left: auto') && !e.includes('margin-right: auto'))(_attrs().style || '') },
     get center() { return (e => e.includes('margin-left: auto') && e.includes('margin-right: auto'))(_attrs().style || '') },
-    set left(v) { editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: unset; margin-right: ${v ? 'auto' : ''};` }) },
-    set right(v) { editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : ''}; margin-right: unset;` }) },
-    set center(v) { editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : 'unset'}; margin-right: ${v ? 'auto' : 'unset'};` }) },
+    set left(v) { update({ style: `${_attrs().style || ''}; margin-left: unset; margin-right: ${v ? 'auto' : ''};` }) },
+    set right(v) { update({ style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : ''}; margin-right: unset;` }) },
+    set center(v) { update({ style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : 'unset'}; margin-right: ${v ? 'auto' : 'unset'};` }) },
   }
 
   function ok() {
     editor.chain().setImage(attrs).focus().run()
   }
 
-  return active() ? [
-    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
+  function update(attrs) {
+    editor.chain().updateAttributes('image', attrs).focus().run()
+  }
+
+  return createMemo(() => active() ? [
+    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' on:keydown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
     { icon: () => <ILucideUpload />, cb: () => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run()) },
     { is: 'div', class: 'hr' },
     { icon: () => <ILucideAlignLeft />, isActive: () => aligns.left, cb: () => aligns.left = !aligns.left },
     { icon: () => <ILucideAlignCenter />, isActive: () => aligns.center, cb: () => aligns.center = !aligns.center },
     { icon: () => <ILucideAlignRight />, isActive: () => aligns.right, cb: () => aligns.right = !aligns.right },
-  ] : []
+  ] : [])
 }
