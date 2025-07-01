@@ -27,3 +27,5 @@ export function createNodeView(Comp, options?: { syncAttrs?: string[]; contentDO
     }
   }
 }
+
+export const menus = []

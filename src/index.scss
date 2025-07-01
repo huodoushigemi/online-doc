@@ -141,9 +141,13 @@ img.has-focus {
 }
 
 .tt-menu:not(.tt-menu-x) {
-  @apply py-1 shadow-lg rd-2 space-y-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
+  @apply py-1 shadow-lg rd-2 space-y-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg];
 }
 
 .tt-menu-x {
-  @apply px-1 shadow-lg rd-2 space-x-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg]
+  @apply px-1 shadow-lg rd-2 space-x-.5 text-sm b-(1 solid gray/30) bg-[--menu-bg];
+
+  & > .hr {
+    @apply w-[1px] my-1.5 bg-gray/30;
+  }
 }

@@ -39,3 +39,5 @@ export const Iframe = Node.create({
     }
   }
 })
+
+export const menus = []

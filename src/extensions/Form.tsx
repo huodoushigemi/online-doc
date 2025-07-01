@@ -71,3 +71,5 @@ export const FormKit = Node.create({
     }
   }
 })
+
+export const menus = []

@@ -105,46 +105,6 @@ export function BubbleMenu(attrs: AAA<BubbleMenuPluginProps, 'editor'> & Record<
   )
 }
 
-export function ImageBubbleMenu(props: { editor: Editor, uploadImage: () => Promise<string> }) {
-  const current = () => props.editor.state.doc.nodeAt(props.editor.state.selection.from)
-  const active = useActive(props.editor, 'image')
-  
-  const attrs = createMutable({ src: '' })
-  const _attrs = useEditorTransaction(props.editor, () => active() ? { ...props.editor.getAttributes('image') } : {})
-  createEffect(() => Object.assign(attrs, _attrs()))
-
-  const aligns = {
-    get left() { return (e => e.includes('margin-right: auto') && !e.includes('margin-left: auto'))(_attrs().style || '') },
-    get right() { return (e => e.includes('margin-left: auto') && !e.includes('margin-right: auto'))(_attrs().style || '') },
-    get center() { return (e => e.includes('margin-left: auto') && e.includes('margin-right: auto'))(_attrs().style || '') },
-    set left(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: unset; margin-right: ${v ? 'auto' : ''};` }) },
-    set right(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : ''}; margin-right: unset;` }) },
-    set center(v) { props.editor.commands.updateAttributes('image', { style: `${_attrs().style || ''}; margin-left: ${v ? 'auto' : 'unset'}; margin-right: ${v ? 'auto' : 'unset'};` }) },
-  }
-
-  createEffect(() => {
-    console.log({..._attrs()})
-  })
-
-  const menus = [
-    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' onKeyDown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
-    { icon: () => <ILucideUpload />, cb: () => props.uploadImage().then(src => props.editor.chain().setImage({ src }).focus().run()) },
-    { icon: () => <ILucideAlignLeft />, isActive: () => aligns.left, cb: () => aligns.left = !aligns.left },
-    { icon: () => <ILucideAlignCenter />, isActive: () => aligns.center, cb: () => aligns.center = !aligns.center },
-    { icon: () => <ILucideAlignRight />, isActive: () => aligns.right, cb: () => aligns.right = !aligns.right },
-  ]
-
-  function ok() {
-    props.editor.chain().setImage(attrs).focus().run()
-  }
-
-  return (
-    <BubbleMenu editor={props.editor} shouldShow={({ editor, state }) => editor.isActive('image')} updateDelay={0}>
-      <Menu items={menus} x={true} />
-    </BubbleMenu>
-  )
-}
-
 // 
 export function LinkPane(props: { editor: Editor }) {
   const attrs = createMutable({ href: '', target: '', ...props.editor.getAttributes('link') })

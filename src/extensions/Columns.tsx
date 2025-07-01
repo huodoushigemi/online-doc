@@ -58,3 +58,4 @@ const ColExt = Node.create({
   addNodeView: () => createNodeView(El, { syncAttrs: ['style'], contentDOM: el => el }),
 })
 
+export const menus = []

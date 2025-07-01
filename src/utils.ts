@@ -52,3 +52,7 @@ export async function print(html: string) {
 export function getStyles(el = document as ParentNode) {
   return [...el.querySelectorAll('style'), ...el.querySelectorAll('link[rel="stylesheet"]')].map(e => e.outerHTML).join('\n')
 }
+
+export const unFn = (fn, ...args) => typeof fn == 'function' ? fn(...args) : fn
+
+export const log = (...args) => (console.log(...args), args[0])
