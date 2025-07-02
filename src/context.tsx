@@ -13,7 +13,7 @@ export const menus = (editor: Editor) => {
 
   const isText = useEditorTransaction(editor, editor => isTextSelection(editor.state.selection) && !editor.isActive('codeBlock'))
 
-  return createMemo(() => log([
+  return createMemo(() => [
     // 文本
     ...isText() ? [
       { icon: () => <ILucideBold />, isActive: useActive(editor, 'bold'), cb: () => exec(chain => chain.toggleBold())  },
@@ -29,5 +29,5 @@ export const menus = (editor: Editor) => {
 
     // 其他
     ...aaa.map(e => unFn(e)).flat()
-  ]))
+  ])
 }

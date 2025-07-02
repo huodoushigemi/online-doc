@@ -5,7 +5,9 @@ import { createNodeView } from './NodeView'
 import Moveable from 'moveable'
 import { useActive, useEditorTransaction } from '../Editor'
 import { useMoveable } from '../components/Moveable'
-import { model, toSignle } from '../hooks'
+import { model, toSignle, useMemoAsync } from '../hooks'
+import { log } from '../utils'
+import { delay } from 'es-toolkit'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -18,7 +20,9 @@ declare module '@tiptap/core' {
 function _Image(props) {
   let ref
   const focused = useEditorTransaction(() => props._nvrp.editor, editor => props._nvrp.node == editor.state.doc.nodeAt(editor.state.selection.$from.pos))
-  useMoveable(() => focused() ? ref : void 0)
+  useMoveable(() => focused() ? ref : void 0, { useResizeObserver: true })
+  console.log('image')
+  // createEffect(() => onCleanup(() => log('image cleaup')))
   return <img ref={ref} {...props}  />
 }
 
@@ -38,7 +42,7 @@ export const ImageKit = Node.create({
     return {
       setImage: (props) => ({ editor, tr, chain }) => {
         const node = this.type.create(props)
-        chain().insertContent(node)
+        chain().insertContentAt(node).focus()
         return true
       }
     }
@@ -67,6 +71,7 @@ export const menus = (editor: Editor) => {
 
   function update(attrs) {
     editor.chain().updateAttributes('image', attrs).focus().run()
+    // editor.chain().setImage(attrs).focus().run()
   }
 
   return createMemo(() => active() ? [

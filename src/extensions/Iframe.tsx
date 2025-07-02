@@ -5,7 +5,6 @@ import { createNodeView } from './NodeView'
 import { useMoveable } from '../components/Moveable'
 import { useEditorTransaction } from '../Editor'
 import { model, toSignle } from '../hooks'
-import { log } from '../utils'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -18,7 +17,7 @@ declare module '@tiptap/core' {
 function _Iframe(props) {
   let ref
   const focused = useEditorTransaction(() => props._nvrp.editor, editor => props._nvrp.node == editor.state.doc.nodeAt(editor.state.selection.$from.pos))
-  useMoveable(() => focused() ? ref : void 0, { resizable: { renderDirections: ['n', 's'] } })
+  useMoveable(() => focused() ? ref : void 0, { resizable: { renderDirections: ['n', 's'] }, useResizeObserver: true })
   return <iframe ref={ref} {...props} />
 }
 
@@ -57,6 +56,6 @@ export const menus = (editor: Editor) => {
   }
 
   return createMemo(() => active() ? [
-    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' on:keydown={e => log(e.key) == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
+    { is: () => <input class='pl-2 outline-0 b-0 text-4 op75' autofocus placeholder='https://……' on:keydown={e => e.key == 'Enter' && ok()} use:model={toSignle(attrs, 'src')} /> },
   ] : [])
 }

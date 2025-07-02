@@ -76,9 +76,9 @@ export function Menu(props) {
     </div>
   )
 
-  createEffect(() => {
-    console.log('xxxx', props.items)
-  })
+  // createEffect(() => {
+  //   console.log('xxxx', props.items)
+  // })
   
   return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
 }
