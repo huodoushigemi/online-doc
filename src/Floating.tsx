@@ -9,6 +9,7 @@ import { createMutable } from 'solid-js/store'
 import { useActive, useEditorTransaction } from './Editor'
 import { model, toSignle } from './hooks'
 import { Menu } from './components/Menu'
+import { log } from './utils'
 
 type AAA<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
@@ -21,8 +22,8 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
   })
 
   const text = useEditorTransaction(() => props.editor, editor => editor.state.selection.$from.node().textContent)
-  const search = useEditorTransaction(() => props.editor, () => (s => s[0] == '/' ? s.slice(1) : '')(text()))
-
+  const search = createMemo(() => ['/', '、'].includes(text()[0]) ? text().slice(1) : null)
+  
   createEffect(() => {
     if (props.editor?.isDestroyed) return
 
@@ -54,7 +55,7 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
 
   return (
     <div ref={menuEl} {...props}>
-      {text()[0] == '/'
+      {search() != null
         ? typeof attrs.children == 'function' ? attrs.children(search) : attrs.children
         : void 0
       }

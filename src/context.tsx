@@ -20,12 +20,12 @@ export const menus = (editor: Editor) => {
       { icon: () => <ILucideUnderline />, isActive: useActive(editor, 'underline'), cb: () => exec(chain => chain.toggleUnderline()) },
       { icon: () => <ILucideItalic />, isActive: useActive(editor, 'italic'), cb: () => exec(chain => chain.toggleItalic()) },
       { icon: () => <ILucideStrikethrough />, isActive: useActive(editor, 'strike'), cb: () => exec(chain => chain.toggleStrike()) },
-      { icon: () => <ILucideCode />, isActive: useActive(editor, 'code'), cb: () => exec(chain => chain.toggleCode()) }
+      { icon: () => <ILucideCode />, isActive: useActive(editor, 'code'), cb: () => exec(chain => chain.toggleCode()) },
+      { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), cb: () => exec(e => e.toggleLink({ href: '' })) },
     ] : [],
     
     // 通用
     // { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), active: () => exec(e => e.toggleLink({ href: '' })), popover: LinkPane },
-    { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), cb: () => exec(e => e.toggleLink({ href: '' })) },
 
     // 其他
     ...aaa.map(e => unFn(e)).flat()

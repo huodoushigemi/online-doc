@@ -23,9 +23,9 @@ function _Image(props) {
 
 export const ImageKit = Node.create({
   name: 'image',
-  // group: 'block',
-  group: 'inline',
-  inline: true,
+  group: 'block',
+  // group: 'inline',
+  // inline: true,
   parseHTML: () => [{ tag: 'img' }],
   addAttributes: () => ({
     src: {},
