@@ -3,7 +3,7 @@ import { createMutable } from 'solid-js/store'
 import { Editor, Node } from '@tiptap/core'
 import { createNodeView } from './NodeView'
 import { useMoveable } from '../components/Moveable'
-import { useEditorTransaction } from '../Editor'
+import { isSelcet, useEditorTransaction } from '../Editor'
 import { model, toSignle } from '../hooks'
 
 declare module '@tiptap/core' {
@@ -16,7 +16,7 @@ declare module '@tiptap/core' {
 
 function _Iframe(props) {
   let ref
-  const focused = useEditorTransaction(() => props._nvrp.editor, editor => props._nvrp.node == editor.state.doc.nodeAt(editor.state.selection.$from.pos))
+  const focused = useEditorTransaction(() => props._nvrp.editor, editor => isSelcet(editor, props._nvrp.node))
   useMoveable(() => focused() ? ref : void 0, { resizable: { renderDirections: ['n', 's'] }, useResizeObserver: true })
   return <iframe ref={ref} {...props} />
 }
@@ -43,6 +43,7 @@ export const Iframe = Node.create({
   }
 })
 
+export default Iframe
 
 export const menus = (editor: Editor) => {
   // const active = useActive(editor, 'iframe')

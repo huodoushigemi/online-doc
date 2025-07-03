@@ -28,6 +28,7 @@ import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
 import { menus } from "./context"
+import { inRange } from "es-toolkit"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -82,7 +83,6 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
   })
 }
 
-
 function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
   return new Editor({
     ...props,
@@ -120,6 +120,25 @@ function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
       ...props?.extensions ?? []
     ]
   })
+}
+
+export function getPos(editor: Editor, node: typeof editor.state.doc) {
+  let ret: number
+  editor.state.doc.descendants((e, pos) => {
+    if (node == e) ret = pos
+    if (ret) return false
+  })
+  return ret
+}
+
+export function isFocus(editor: Editor, node: typeof editor.state.doc) {
+  const pos = getPos(editor, node)
+  return inRange(editor.state.selection.anchor, pos, pos + node.nodeSize)
+}
+
+export function isSelcet(editor: Editor, node: typeof editor.state.doc) {
+  const pos = getPos(editor, node)
+  return editor.state.selection.from == pos && editor.state.selection.to == pos + node.nodeSize
 }
 
 export async function html2md(html: string) {

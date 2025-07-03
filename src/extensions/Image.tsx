@@ -1,13 +1,10 @@
-import { createEffect, createMemo, onCleanup } from 'solid-js'
+import { createEffect, createMemo } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { Editor, Node } from '@tiptap/core'
 import { createNodeView } from './NodeView'
-import Moveable from 'moveable'
-import { useActive, useEditorTransaction } from '../Editor'
+import { isSelcet, useEditorTransaction } from '../Editor'
 import { useMoveable } from '../components/Moveable'
-import { model, toSignle, useMemoAsync } from '../hooks'
-import { log } from '../utils'
-import { delay } from 'es-toolkit'
+import { model, toSignle } from '../hooks'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -19,10 +16,8 @@ declare module '@tiptap/core' {
 
 function _Image(props) {
   let ref
-  const focused = useEditorTransaction(() => props._nvrp.editor, editor => props._nvrp.node == editor.state.doc.nodeAt(editor.state.selection.$from.pos))
+  const focused = useEditorTransaction(() => props._nvrp.editor, editor => isSelcet(editor, props._nvrp.node))
   useMoveable(() => focused() ? ref : void 0, { useResizeObserver: true })
-  console.log('image')
-  // createEffect(() => onCleanup(() => log('image cleaup')))
   return <img ref={ref} {...props}  />
 }
 
@@ -42,16 +37,17 @@ export const ImageKit = Node.create({
     return {
       setImage: (props) => ({ editor, tr, chain }) => {
         const node = this.type.create(props)
-        chain().insertContentAt(node).focus()
+        chain().insertContent(node)
         return true
       }
     }
   }
 })
 
+export default ImageKit
+
 export const menus = (editor: Editor) => {
-  // const active = useActive(editor, 'image')
-  const active = useEditorTransaction(editor, () => editor.state.doc.nodeAt(editor.state.selection.from)?.type.name == 'image' && (editor.state.selection.to - editor.state.selection.from == 1))
+  const active = useEditorTransaction(editor, () => (node => node?.type.name == 'image' && isSelcet(editor, node))(editor.state.doc.nodeAt(editor.state.selection.from)))
   const attrs = createMutable({ src: '' })
   const _attrs = useEditorTransaction(editor, () => active() ? { ...editor.getAttributes('image') } : {})
   createEffect(() => Object.assign(attrs, _attrs()))
@@ -66,12 +62,13 @@ export const menus = (editor: Editor) => {
   }
 
   function ok() {
-    editor.chain().setImage(attrs).focus().run()
+    editor.chain().setImage(attrs).run()
+    editor.commands.setNodeSelection(editor.state.selection.from)
   }
 
   function update(attrs) {
-    editor.chain().updateAttributes('image', attrs).focus().run()
-    // editor.chain().setImage(attrs).focus().run()
+    editor.chain().updateAttributes('image', attrs).focus().selectNodeForward().run()
+    editor.commands.setNodeSelection(editor.state.selection.from)
   }
 
   return createMemo(() => active() ? [
