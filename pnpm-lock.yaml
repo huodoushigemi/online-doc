@@ -23,6 +23,9 @@ importers:
       '@solid-primitives/media':
         specifier: ^2.3.1
         version: 2.3.1(solid-js@1.9.7)
+      '@solid-primitives/memo':
+        specifier: ^1.4.3
+        version: 1.4.3(solid-js@1.9.7)
       '@solid-primitives/mutation-observer':
         specifier: ^1.2.1
         version: 1.2.1(solid-js@1.9.7)
@@ -50,6 +53,9 @@ importers:
       '@tiptap/extension-floating-menu':
         specifier: 3.0.0-beta.5
         version: 3.0.0-beta.5(@floating-ui/dom@1.7.1)(@tiptap/core@3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5))(@tiptap/pm@3.0.0-beta.5)
+      '@tiptap/extension-highlight':
+        specifier: 3.0.0-beta.23
+        version: 3.0.0-beta.23(@tiptap/core@3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5))
       '@tiptap/extension-image':
         specifier: 3.0.0-beta.5
         version: 3.0.0-beta.5(@tiptap/core@3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5))
@@ -688,6 +694,11 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
+  '@solid-primitives/memo@1.4.3':
+    resolution: {integrity: sha512-CA+n9yaoqbYm+My5tY2RWb6EE16tVyehM4GzwQF4vCwvjYPAYk1JSRIVuMC0Xuj5ExD2XQJE5E2yAaKY2HTUsg==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   '@solid-primitives/mutation-observer@1.2.1':
     resolution: {integrity: sha512-7PZ+8ZbmhSTsDolHYrBNVAbmA+5hmcDNiMZB7siQ1egmo86u9iqaa+bPuqjbzjOQOFPeEzL5Yx0BIX995fR4iQ==}
     peerDependencies:
@@ -713,6 +724,11 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
+  '@solid-primitives/scheduled@1.5.2':
+    resolution: {integrity: sha512-/j2igE0xyNaHhj6kMfcUQn5rAVSTLbAX+CDEBm25hSNBmNiHLu2lM7Usj2kJJ5j36D67bE8wR1hBNA8hjtvsQA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   '@solid-primitives/static-store@0.1.1':
     resolution: {integrity: sha512-daXWvpLjd+4hbYdGaaEJ2kKFuFhshvfIBFLveW7mfk2BWHl9lGQVwUuExp3qllkK9ONA9p+5D2cpwBQosv8odQ==}
     peerDependencies:
@@ -732,6 +748,11 @@ packages:
 
   '@solid-primitives/utils@6.3.1':
     resolution: {integrity: sha512-4/Z59nnwu4MPR//zWZmZm2yftx24jMqQ8CSd/JobL26TPfbn4Ph8GKNVJfGJWShg1QB98qObJSskqizbTvcLLA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/utils@6.3.2':
+    resolution: {integrity: sha512-hZ/M/qr25QOCcwDPOHtGjxTD8w2mNyVAYvcfgwzBHq2RwNqHNdDNsMZYap20+ruRwW4A3Cdkczyoz0TSxLCAPQ==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -808,6 +829,11 @@ packages:
     resolution: {integrity: sha512-6esETWdxFqRd1LM5Y+5Dqw05e7FpYYQ0q+UWPZkseQRdzZv53hKGjjv2shgUBhrrgGe/+wa4y+TEUwKY/XJKLA==}
     peerDependencies:
       '@tiptap/core': 3.0.0-beta.5
+
+  '@tiptap/extension-highlight@3.0.0-beta.23':
+    resolution: {integrity: sha512-QHUnEsJURuH6Fk/4yUzCbMsUN/o2ZlmCITR/RIzKzwvvLmx00aevj+7UU4I91onIgbGyy6kVE3A+nyMVEzvfTw==}
+    peerDependencies:
+      '@tiptap/core': 3.0.0-beta.23
 
   '@tiptap/extension-horizontal-rule@3.0.0-beta.5':
     resolution: {integrity: sha512-RzDf6kNsH+wZ5tfsZmN92rrnGmc0DvxVe/kBC8xhuvTYHGVUy+lzqAvdo1+k8CEZr5tlcxycC8XaaQtWuTNwhA==}
@@ -2405,6 +2431,12 @@ snapshots:
       '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
       solid-js: 1.9.7
 
+  '@solid-primitives/memo@1.4.3(solid-js@1.9.7)':
+    dependencies:
+      '@solid-primitives/scheduled': 1.5.2(solid-js@1.9.7)
+      '@solid-primitives/utils': 6.3.2(solid-js@1.9.7)
+      solid-js: 1.9.7
+
   '@solid-primitives/mutation-observer@1.2.1(solid-js@1.9.7)':
     dependencies:
       '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
@@ -2435,6 +2467,10 @@ snapshots:
       '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
       solid-js: 1.9.7
 
+  '@solid-primitives/scheduled@1.5.2(solid-js@1.9.7)':
+    dependencies:
+      solid-js: 1.9.7
+
   '@solid-primitives/static-store@0.1.1(solid-js@1.9.7)':
     dependencies:
       '@solid-primitives/utils': 6.3.1(solid-js@1.9.7)
@@ -2446,6 +2482,10 @@ snapshots:
       solid-js: 1.9.7
 
   '@solid-primitives/utils@6.3.1(solid-js@1.9.7)':
+    dependencies:
+      solid-js: 1.9.7
+
+  '@solid-primitives/utils@6.3.2(solid-js@1.9.7)':
     dependencies:
       solid-js: 1.9.7
 
@@ -2508,6 +2548,10 @@ snapshots:
       '@tiptap/core': 3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5)
 
   '@tiptap/extension-heading@3.0.0-beta.5(@tiptap/core@3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5))':
+    dependencies:
+      '@tiptap/core': 3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5)
+
+  '@tiptap/extension-highlight@3.0.0-beta.23(@tiptap/core@3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5))':
     dependencies:
       '@tiptap/core': 3.0.0-beta.5(@tiptap/pm@3.0.0-beta.5)
 

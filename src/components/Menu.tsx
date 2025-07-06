@@ -1,14 +1,20 @@
-import { children, createEffect, createMemo, createResource, createSignal, mergeProps, splitProps } from "solid-js"
+import { children, createEffect, createMemo, createResource, createSignal, mergeProps, onMount, splitProps } from "solid-js"
+import { isEmpty } from 'es-toolkit/compat'
 import { createRender } from "./Render"
-import { autoUpdate, createFloating } from "floating-ui-solid"
+import { autoUpdate, createFloating, offset } from "floating-ui-solid"
 import { combineProps } from '@solid-primitives/props'
 import { pointerHover } from "@solid-primitives/pointer"
 import { createMutable } from "solid-js/store"
 import { VDir } from "../hooks/useDir"
+import { log } from "../utils"
+import { Popover } from "./Popover"
+import { render } from "solid-js/web"
 
 export function Menu(props) {
   
   const _Li = _e => {
+    const [e, attrs] = splitProps(_e, ['children', 'label', 'icon', 'isActive', 'cb', 'menu', 'popover'])
+
     let el!: HTMLDivElement
     const [floating, setFloating] = createSignal<HTMLElement>()
     const [hover, setHover] = createSignal(false)
@@ -17,6 +23,7 @@ export function Menu(props) {
     const style = createMemo(() => floating() ? createFloating({
       strategy: 'fixed',
       placement: 'right-start',
+      ...e.menu,
       elements: { reference: () => el, floating },
       whileElementsMounted(ref, float, update) {
         return autoUpdate(ref, float, update, { ancestorResize: true, elementResize: true, layoutShift: true, ancestorScroll: true })
@@ -37,15 +44,16 @@ export function Menu(props) {
       ret.finally(() => req.loading = false)
     }
 
-    const [_, e] = splitProps(_e, ['children'])
-    const child = children(() => _.children)
+    onMount(() => {
+      <Popover strategy='fixed' reference={el} portal={el} {..._e.popover} middleware={[offset({ mainAxis: 4 })]} />
+    })
+
+    const child = children(() => e.children)
     return (
       <div
         ref={el}
         use:pointerHover={setHover}
-        {...combineProps({ class: `li flex aic rd-2 ${props.x ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, e)}
-        cb={null}
-        icon={null}
+        {...combineProps({ class: `li flex aic rd-2 ${props.x ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, attrs)}
         on:click={onClick}
       >
         <div class={`flex aic ${props.x ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
@@ -72,13 +80,13 @@ export function Menu(props) {
       use:VDir={props.usedir}
       on:click={e => e.stopPropagation()}
     >
-      {props.children}
+      {(el => isEmpty(el) ? <div class='px-4 py-2 op40'>无内容</div> : el)(props.children)}
     </div>
   )
 
   // createEffect(() => {
   //   console.log('xxxx', props.items)
   // })
-  
+
   return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
 }

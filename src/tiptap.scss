@@ -118,3 +118,7 @@ p.is-empty::before {
 table {
   width: 100% !important;
 }
+
+.tiptap.ProseMirror:not(.readonly):not(.ProseMirror-hideselection) ::selection {
+  background-color: rgba(157,138,255,0.2);
+}

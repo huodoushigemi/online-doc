@@ -49,6 +49,15 @@ export async function print(html: string) {
   iframe.remove()
 }
 
+export function mergeRect(rect1: DOMRect, rect2: DOMRect) {
+  return DOMRect.fromRect({
+    x: Math.min(rect1.x, rect2.x),
+    y: Math.min(rect1.y, rect2.y),
+    width: Math.max(rect1.right, rect2.right) - Math.min(rect1.x, rect2.x),
+    height: Math.max(rect1.bottom, rect2.bottom) - Math.min(rect1.y, rect2.y),
+  })
+}
+
 export function getStyles(el = document as ParentNode) {
   return [...el.querySelectorAll('style'), ...el.querySelectorAll('link[rel="stylesheet"]')].map(e => e.outerHTML).join('\n')
 }
@@ -56,3 +65,5 @@ export function getStyles(el = document as ParentNode) {
 export const unFn = (fn, ...args) => typeof fn == 'function' ? fn(...args) : fn
 
 export const log = (...args) => (console.log(...args), args[0])
+
+export const parseStyle = s => s ? s.split(';').reduce((o, e) => ((([k, v]) => o[k.trim()] = v.trim())(e.split(':')), o), {}) : {}

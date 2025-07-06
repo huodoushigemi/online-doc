@@ -5,6 +5,7 @@ import { createNodeView } from './NodeView'
 import { isSelcet, useEditorTransaction } from '../Editor'
 import { useMoveable } from '../components/Moveable'
 import { model, toSignle } from '../hooks'
+import { log } from '../utils'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -26,6 +27,7 @@ export const ImageKit = Node.create({
   group: 'block',
   // group: 'inline',
   // inline: true,
+  marks: "_",
   parseHTML: () => [{ tag: 'img' }],
   addAttributes: () => ({
     src: {},
@@ -49,7 +51,7 @@ export default ImageKit
 export const menus = (editor: Editor) => {
   const active = useEditorTransaction(editor, () => (node => node?.type.name == 'image' && isSelcet(editor, node))(editor.state.doc.nodeAt(editor.state.selection.from)))
   const attrs = createMutable({ src: '' })
-  const _attrs = useEditorTransaction(editor, () => active() ? { ...editor.getAttributes('image') } : {})
+  const _attrs = useEditorTransaction(editor, () => active() ? { ...editor.getAttributes('image') } : attrs)
   createEffect(() => Object.assign(attrs, _attrs()))
 
   const aligns = {

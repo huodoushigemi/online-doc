@@ -1,6 +1,10 @@
-import { Editor, findChildren, Node, type NodeViewRenderer, type NodeViewRendererProps } from '@tiptap/core'
+import { Editor, findChildren, findParentNode, Node, type NodeViewRenderer, type NodeViewRendererProps, findParentNodeClosestToPos } from '@tiptap/core'
 import { Columns } from '../components/Columns'
-import { createNodeView } from './NodeView';
+import { createNodeView } from './NodeView'
+import { createEffect, createMemo } from 'solid-js'
+import { isFocus, useEditorTransaction, useNodeAttrs } from '../Editor'
+import { model } from '../hooks'
+import { log, parseStyle } from '../utils'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -58,4 +62,23 @@ const ColExt = Node.create({
   addNodeView: () => createNodeView(El, { syncAttrs: ['style'], contentDOM: el => el }),
 })
 
-export const menus = []
+const _Gap = props => {
+  return (
+    <label class='flex aic pl-1 w-3.5rem!'>
+      <IMyGap class='text-4.5 op40' />
+      <input use:model={props.gap} class='w-0 flex-1 b-0 bg-#00 outline-0 mt-[1px]' type='number' />
+    </label>
+  )
+}
+
+export const menus = (editor: Editor) => {
+  const node = useEditorTransaction(editor, editor => findParentNodeClosestToPos(editor.state.selection.$from, node => node.type.name == 'columns')?.node)
+  const attrs = createMemo(() => node() ? useNodeAttrs(editor, node())() : void 0)
+  const gap = [() => +attrs()!.gap, gap => attrs()!.gap = +gap]
+  
+  return createMemo(() => {
+    return attrs() ? [
+      { is: _Gap, gap }
+    ] : null
+  })
+}

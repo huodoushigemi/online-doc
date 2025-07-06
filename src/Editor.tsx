@@ -1,6 +1,10 @@
-import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect } from "solid-js"
+import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect, createComputed } from "solid-js"
 import { Dynamic, Portal } from 'solid-js/web'
-import { access, type MaybeAccessor } from '@solid-primitives/utils'
+import { createMutable } from "solid-js/store"
+import { inRange, pickBy } from "es-toolkit"
+import { isEmpty } from "es-toolkit/compat"
+import { access, type MaybeAccessor, type MaybeAccessorValue } from '@solid-primitives/utils'
+import { createWritableMemo } from '@solid-primitives/memo'
 import type { EditorOptions, ChainedCommands } from '@tiptap/core'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
@@ -8,12 +12,13 @@ import { TextStyleKit } from '@tiptap/extension-text-style'
 import { TableKit } from '@tiptap/extension-table'
 import { Focus, Placeholder } from '@tiptap/extensions'
 import { ListKit } from '@tiptap/extension-list'
+import Highlight from '@tiptap/extension-highlight'
 import Image from '@tiptap/extension-image'
 import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 import { useDark, useMemoAsync } from "./hooks"
 import { VDir } from './hooks/useDir'
 import { BubbleMenu, FloatingMenu, LinkPane } from './Floating'
-import { chooseImage, file2base64 } from './utils'
+import { chooseImage, file2base64, log } from './utils'
 import { Floating, Popover } from './components/Popover'
 import { offset } from 'floating-ui-solid'
 import { Menu } from './components/Menu'
@@ -28,7 +33,6 @@ import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
 import { menus } from "./context"
-import { inRange } from "es-toolkit"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -68,8 +72,6 @@ export function useActive(editor: MaybeAccessor<Editor>, key: string) {
   return useEditorTransaction(editor, editor => editor.isActive(key))
 }
 
-export type EditorRef = Editor | ((editor: Editor) => void)
-
 export default function useEditor(props?: () => Partial<EditorOptions>) {
   const [isDark] = useDark()
   return createMemo(() => {
@@ -83,6 +85,22 @@ export default function useEditor(props?: () => Partial<EditorOptions>) {
   })
 }
 
+export function useNodeAttrs(editor: MaybeAccessor<Editor>, node: MaybeAccessor<Editor['state']['doc'] | void>) {
+  const [attrs] = createWritableMemo(() => createMutable({ ...access(node)?.attrs }))
+  createComputed(old => {
+    if (!access(node)) return
+    const obj = { ...attrs() }
+    if (!old) return obj
+    const tr = access(editor).state.tr
+    const pos = getPos(access(editor), access(node))
+    const diff = pickBy(obj, (v, k) => v != old?.[k])
+    for (const k in diff) tr.setNodeAttribute(pos, k, diff[k])
+    isEmpty(diff) || access(editor).view.dispatch(tr)
+    return obj
+  })
+  return attrs
+}
+
 function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
   return new Editor({
     ...props,
@@ -92,6 +110,7 @@ function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
         link: { openOnClick: false },
         codeBlock: false,
       }),
+      Highlight,
       CodeBlockShiki.configure({ defaultTheme: `github-${isDark ? 'dark' : 'light'}`, exitOnArrowDown: false, exitOnTripleEnter: false }),
       // Selection,
       ColumnsKit,
@@ -155,7 +174,8 @@ export function TiptapEditor() {
   const [isDark] = useDark()
 
   const editor = useEditor(() => ({
-    content: `<h1>wc-mdit</h1><p>A markdown-to-html web component.</p><h2>⚙️ Installation</h2><ul><li><p>npm</p></li></ul><pre><code>npm i wc-mdit</code></pre><ul><li><p>scripts</p></li></ul><pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"&gt;&lt;/script&gt;\n&lt;script src="https://cdn.jsdelivr.net/npm/wc-mdit/dist/wc-mdit.umd.js"&gt;&lt;/script&gt;</code></pre><h2>🚀 Example</h2><pre><code>import 'wc-mdit'\n\nfunction App() {\n  return (\n    &lt;wc-mdit content='# H1' theme='github-dark' /&gt;\n    // or\n    &lt;wc-mdit src="https://raw.githubusercontent.com/huodoushigemi/wc-mdit/refs/heads/main/README.md" theme='github-dark' /&gt;\n  )\n}</code></pre><h2>📄 Props</h2><table style="min-width: 150px"><colgroup><col style="min-width: 50px"><col style="min-width: 50px"><col style="min-width: 50px"></colgroup><tbody><tr><th colspan="1" rowspan="1"><p>Attribute</p></th><th colspan="1" rowspan="1"><p>Type</p></th><th colspan="1" rowspan="1"><p>Description</p></th></tr><tr><td colspan="1" rowspan="1"><p>src</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>URL to external markdown file.</p></td></tr><tr><td colspan="1" rowspan="1"><p>content</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>theme</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>css</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p><code>&lt;style&gt;{css}&lt;/style&gt;</code></p></td></tr><tr><td colspan="1" rowspan="1"><p>no-shadow</p></td><td colspan="1" rowspan="1"><p>Boolean</p></td><td colspan="1" rowspan="1"><p>If set, renders and stamps into <strong>light DOM</strong> instead. Please know what you are doing.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-class</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Class names forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-style</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Style forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>options</p></td><td colspan="1" rowspan="1"><p>Object</p></td><td colspan="1" rowspan="1"><p><code>new MarkdownIt(options)</code></p></td></tr></tbody></table><p></p>`
+    // content: `<h1>wc-mdit</h1><p>A markdown-to-html web component.</p><h2>⚙️ Installation</h2><ul><li><p>npm</p></li></ul><pre><code>npm i wc-mdit</code></pre><ul><li><p>scripts</p></li></ul><pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"&gt;&lt;/script&gt;\n&lt;script src="https://cdn.jsdelivr.net/npm/wc-mdit/dist/wc-mdit.umd.js"&gt;&lt;/script&gt;</code></pre><h2>🚀 Example</h2><pre><code>import 'wc-mdit'\n\nfunction App() {\n  return (\n    &lt;wc-mdit content='# H1' theme='github-dark' /&gt;\n    // or\n    &lt;wc-mdit src="https://raw.githubusercontent.com/huodoushigemi/wc-mdit/refs/heads/main/README.md" theme='github-dark' /&gt;\n  )\n}</code></pre><h2>📄 Props</h2><table style="min-width: 150px"><colgroup><col style="min-width: 50px"><col style="min-width: 50px"><col style="min-width: 50px"></colgroup><tbody><tr><th colspan="1" rowspan="1"><p>Attribute</p></th><th colspan="1" rowspan="1"><p>Type</p></th><th colspan="1" rowspan="1"><p>Description</p></th></tr><tr><td colspan="1" rowspan="1"><p>src</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>URL to external markdown file.</p></td></tr><tr><td colspan="1" rowspan="1"><p>content</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>theme</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>css</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p><code>&lt;style&gt;{css}&lt;/style&gt;</code></p></td></tr><tr><td colspan="1" rowspan="1"><p>no-shadow</p></td><td colspan="1" rowspan="1"><p>Boolean</p></td><td colspan="1" rowspan="1"><p>If set, renders and stamps into <strong>light DOM</strong> instead. Please know what you are doing.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-class</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Class names forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-style</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Style forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>options</p></td><td colspan="1" rowspan="1"><p>Object</p></td><td colspan="1" rowspan="1"><p><code>new MarkdownIt(options)</code></p></td></tr></tbody></table><p></p>`
+    content: ``
   }))
 
   const sss = createMemo(() => menus(editor()))
@@ -215,23 +235,8 @@ export function TiptapEditor() {
         )}
       </FloatingMenu>
 
-      <BubbleMenu editor={editor()} shouldShow={({ editor }) => editor.state.selection.from != editor.state.selection.to}>
-        <Menu items={_menus()} x={true} />
-        {/* <div class='tt-menu-x flex aic lh-1em'>
-          <For each={marks}>
-            {node => {
-              return (
-                <div class={`li flex aic ${node.isActive() && 'active'} p-1 my-1 rd-2`} onClick={() => node.active()}>
-                  <Floating
-                    reference={<Dynamic component={node.icon} />}
-                    floating={node.popover && node.isActive() ? <node.popover editor={editor()} on:click={e => e.stopPropagation()} /> : void 0}
-                    placement='top' middleware={[offset(12)]}
-                  />
-                </div>
-              )
-            }}
-          </For>
-        </div> */}
+      <BubbleMenu editor={editor()}>
+        {_menus().length ? <Menu items={_menus()} x={true} /> : void 0}
       </BubbleMenu>
     </div>
   )

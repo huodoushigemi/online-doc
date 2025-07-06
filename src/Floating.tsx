@@ -9,7 +9,9 @@ import { createMutable } from 'solid-js/store'
 import { useActive, useEditorTransaction } from './Editor'
 import { model, toSignle } from './hooks'
 import { Menu } from './components/Menu'
-import { log } from './utils'
+import { log, mergeRect } from './utils'
+import { Floating } from './components/Popover'
+import { offset } from 'floating-ui-solid'
 
 type AAA<T, K extends keyof T> = Required<Pick<T, K>> & Partial<Omit<T, K>>
 
@@ -63,47 +65,18 @@ export function FloatingMenu(attrs: AAA<FloatingMenuPluginProps, 'editor'> & Rec
   )
 }
 
-export function BubbleMenu(attrs: AAA<BubbleMenuPluginProps, 'editor'> & Record<string, any>) {
+export function BubbleMenu(attrs: { editor: Editor } & Record<string, any>) {
+  const { editor } = attrs
   let [_, props] = splitProps(attrs, ['children'])
-  let menuEl!: HTMLDivElement
-  onMount(() => {
-    menuEl.style.visibility = 'hidden'
-    menuEl.style.position = 'absolute'
-    menuEl.style.zIndex = '9'
-  })
+  const toRect = (e) => DOMRect.fromRect({ x: e.left, y: e.top, width: e.right - e.left, height: e.bottom - e.top })
+  const rect = useEditorTransaction(editor, editor => mergeRect(toRect(editor.view.coordsAtPos(editor.state.selection.from)), toRect(editor.view.coordsAtPos(editor.state.selection.to))))
 
-  createEffect(() => {
-    if (props.editor?.isDestroyed) return
-
-    const { editor } = props
-
-    const plugin = BubbleMenuPlugin({
-      editor,
-      element: menuEl,
-      pluginKey: props.pluginKey || 'bubbleMenu',
-      ...props,
-      options: {
-        ...props.options
-      },
-    })
-
-    editor.registerPlugin(plugin)
-
-    onCleanup(() => {   
-      editor.unregisterPlugin(props.pluginKey || 'bubbleMenu')
-      window.requestAnimationFrame(() => {
-        if (menuEl.parentNode) {
-          menuEl.parentNode.removeChild(menuEl)
-        }
-      })
-    })
-  })
-
-  return (
-    <Portal ref={menuEl} {...props} mount={document.body}>
-      {attrs.children}
-    </Portal>
-  )
+  return <Floating
+    placement='top'
+    middleware={[offset({ mainAxis: 6 })]}
+    reference={rect() ? { getBoundingClientRect: rect } : void 0}
+    floating={() => <div>{attrs.children}</div>}
+  />
 }
 
 // 

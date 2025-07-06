@@ -9,15 +9,14 @@ import { useMemoAsync } from '../hooks'
 export function Popover(attrs: FloatingProps) {
   const [_, props] = splitProps(attrs, ['reference', 'floating'])
   
-  const log = v => (console.log(v), v)
   const [hover, setHover] = createSignal(false)
   const show = useMemoAsync(() => hover() ? delay(100).then(() => true) : delay(200).then(() => false))
 
   const reference = children(() => attrs.reference as HTMLElement)
   const floating = children(() => show() ? attrs.floating as HTMLElement : void 0)
 
-  createEventListener(() => [reference(), floating()].filter(e => log(e)), 'pointerenter', () => setHover(true))
-  createEventListener(() => [reference(), floating()].filter(e => log(e)), 'pointerleave', () => setHover(false))
+  createEventListener(() => [reference(), floating()].filter(e => e), 'pointerenter', () => setHover(true))
+  createEventListener(() => [reference(), floating()].filter(e => e), 'pointerleave', () => setHover(false))
 
   return <Floating {...props} reference={reference} floating={floating} />
 }
@@ -49,7 +48,7 @@ export function Floating(attrs: FloatingProps) {
   return (
     <>
       {reference()}
-      {props.portal ? <Portal mount={props.portal}>{floating()}</Portal> : floating()}
+      {props.portal && floating() ? <Portal mount={props.portal}>{floating()}</Portal> : floating()}
     </>
   )
 }
