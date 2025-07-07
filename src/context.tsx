@@ -38,7 +38,6 @@ export const menus = (editor: Editor) => {
   return createMemo(() => [
     // 文本
     ...isText() && isRange() ? [
-      {  },
       { icon: () => <ILucideBold />, isActive: useActive(editor, 'bold'), cb: () => exec(chain => chain.toggleBold())  },
       { icon: () => <ILucideUnderline />, isActive: useActive(editor, 'underline'), cb: () => exec(chain => chain.toggleUnderline()) },
       { icon: () => <ILucideItalic />, isActive: useActive(editor, 'italic'), cb: () => exec(chain => chain.toggleItalic()) },

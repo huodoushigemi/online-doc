@@ -53,7 +53,7 @@ export function Menu(props) {
       <div
         ref={el}
         use:pointerHover={setHover}
-        {...combineProps({ class: `li flex aic rd-2 ${props.x ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, attrs)}
+        {...combineProps({ class: `li flex aic rd-2 mx-1 pl-1 pr-4 py-1 ${e.isActive?.() && 'active'}` }, attrs)}
         on:click={onClick}
       >
         <div class={`flex aic ${props.x ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
@@ -88,5 +88,5 @@ export function Menu(props) {
   //   console.log('xxxx', props.items)
   // })
 
-  return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
+  return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x [&>.li]:my-1! [&>.li]:p-1!' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
 }

@@ -16,17 +16,24 @@ export const menus = (editor: Editor) => {
     findParentNodeClosestToPos(editor.state.selection.$from, e => name.includes(e.type.name))?.node,
     findParentNodeClosestToPos(editor.state.selection.$to, e => name.includes(e.type.name))?.node,
   ])
-  createEffect(() => {
-    log(cell())
-  })
+
+  // createEffect(() => {
+  //   log(cell())
+  // })
+
+  // editor.state.selection.ranges
+
   return createMemo(() => {
     const [start, end] = cell()
     if (!start || !end) return
     const ret = [] as any[]
-    // merge
-    ret.push({ icon: <IMySplitCell /> })
+    ret.push({ icon: <IMySplitCell />, class: 'text-nowrap', children: [
+      { label: '拆分行' },
+      { label: '拆分列' },
+    ] })
     // muti
-    if (start != end) ret.push([{ icon: <IMyMergeCell /> }])
+    if (start != end) ret.push({ icon: <IMyMergeCell /> })
+    log(start, end)
     return ret
   })
 }
