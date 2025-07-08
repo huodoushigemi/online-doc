@@ -15,7 +15,9 @@ export const menus = (editor: Editor) => {
   const cell = useEditorTransaction(editor, editor => [
     findParentNodeClosestToPos(editor.state.selection.$from, e => name.includes(e.type.name))?.node,
     findParentNodeClosestToPos(editor.state.selection.$to, e => name.includes(e.type.name))?.node,
-  ])
+  ], {
+    equals: (a, b) => a[0] == b[0] && a[1] == b[1]
+  })
 
   // createEffect(() => {
   //   log(cell())
@@ -33,7 +35,6 @@ export const menus = (editor: Editor) => {
     ] })
     // muti
     if (start != end) ret.push({ icon: <IMyMergeCell /> })
-    log(start, end)
     return ret
   })
 }

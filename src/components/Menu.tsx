@@ -1,4 +1,4 @@
-import { children, createEffect, createMemo, createResource, createSignal, mergeProps, onMount, splitProps } from "solid-js"
+import { children, createContext, createEffect, createMemo, createResource, createSignal, mergeProps, onMount, splitProps, useContext } from "solid-js"
 import { isEmpty } from 'es-toolkit/compat'
 import { createRender } from "./Render"
 import { autoUpdate, createFloating, offset } from "floating-ui-solid"
@@ -11,8 +11,11 @@ import { Popover } from "./Popover"
 import { render } from "solid-js/web"
 
 export function Menu(props) {
+  const MenuCtx = createContext({ deep: 0 })
   
   const _Li = _e => {
+    const ctx = useContext(MenuCtx)
+    log(ctx)
     const [e, attrs] = splitProps(_e, ['children', 'label', 'icon', 'isActive', 'cb', 'menu', 'popover'])
 
     let el!: HTMLDivElement
@@ -53,14 +56,15 @@ export function Menu(props) {
       <div
         ref={el}
         use:pointerHover={setHover}
-        {...combineProps({ class: `li flex aic rd-2 mx-1 pl-1 pr-4 py-1 ${e.isActive?.() && 'active'}` }, attrs)}
+        {...combineProps({ class: `li flex aic rd-2 ${props.x && ctx.deep == 1 ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, attrs)}
         on:click={onClick}
       >
-        <div class={`flex aic ${props.x ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
+        <div class={`flex aic ${props.x && ctx.deep == 1 ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
           {req.loading ? <IMyLoading /> : e.icon}
         </div>
         {e.label}
-        {hover() && child() && <_Menu ref={setFloating}>{child()}</_Menu>}
+        {/* {hover() && child() && <_Menu ref={setFloating}>{child()}</_Menu>} */}
+        {hover() && e.children && <_Menu ref={setFloating}>{e.children}</_Menu>}
       </div>
     )
   }
@@ -74,19 +78,25 @@ export function Menu(props) {
     }
   })
 
-  const _Menu = props => (
-    <div
-      {...combineProps({ class: 'tt-menu max-h-100 overflow-auto' }, props)}
-      use:VDir={props.usedir}
-      on:click={e => e.stopPropagation()}
-    >
-      {(el => isEmpty(el) ? <div class='px-4 py-2 op40'>无内容</div> : el)(props.children)}
-    </div>
-  )
+  const _Menu = e => {
+    const parent = useContext(MenuCtx)
+    const ctx = createMutable({ deep: parent.deep + 1 })
+    return (
+      <MenuCtx.Provider value={ctx}>
+        <div
+          {...combineProps({ class: `${props.x && ctx.deep == 1 ? 'tt-menu-x flex' : 'tt-menu max-h-100'} overflow-auto` }, e)}
+          use:VDir={e.usedir}
+          on:click={e => e.stopPropagation()}
+        >
+          {(el => isEmpty(el) ? <div class='px-4 py-2 op40'>无内容</div> : el)(e.children)}
+        </div>
+      </MenuCtx.Provider>
+    )
+  }
 
   // createEffect(() => {
   //   console.log('xxxx', props.items)
   // })
 
-  return <Li {...combineProps({ class: props.x ? 'flex tt-menu-x [&>.li]:my-1! [&>.li]:p-1!' : 'tt-menu' }, props)} is={_Menu} items={null} children={props.items} />
+  return <Li {...combineProps({}, props)} is={_Menu} items={null} children={props.items} />
 }

@@ -33,10 +33,12 @@ import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
 import { menus } from "./context"
+import type { MemoOptions } from "solid-js"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
-  read: (value: Editor) => T
+  read: (value: Editor) => T,
+  options?: MemoOptions<T>
 ): () => T {
   const [depend, update] = createSignal(undefined, { equals: false })
 
@@ -51,7 +53,7 @@ export function useEditorTransaction<T>(
   return createMemo(() => {
     depend()
     return read(access(instance))
-  })
+  }, options)
 }
 
 export function chainReplace(editor: Editor) {
