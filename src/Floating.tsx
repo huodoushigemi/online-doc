@@ -74,6 +74,7 @@ export function BubbleMenu(attrs: { editor: Editor } & Record<string, any>) {
   return <Floating
     placement='top'
     middleware={[offset({ mainAxis: 6 })]}
+    whileElementsMounted={void 0}
     reference={rect() ? { getBoundingClientRect: rect } : void 0}
     floating={() => <div>{attrs.children}</div>}
   />

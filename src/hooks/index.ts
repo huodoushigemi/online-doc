@@ -61,8 +61,9 @@ export function toSignle<T extends Record<string, any>>(state: T, k: keyof T) {
 }
 
 export function useDark() {
-  const get = v => v == 'dark', set = v => v ? 'dark' : ''
-  const dark = makePersisted(createSignal(createPrefersDark()()), { name: 'color-schema', storage: localStorage, sync: storageSync, serialize: set, deserialize: get })
+  const get = v => v == 'dark' || (prefersDark() && !v), set = v => v ? 'dark' : 'light'
+  const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches
+  const dark = makePersisted(createSignal(prefersDark()), { name: 'color-schema', storage: localStorage, sync: storageSync, serialize: set, deserialize: get })
   createEffect(() => document.documentElement.classList[dark[0]() ? 'add' : 'remove']('dark'))
   createEffect(() =>  window.dispatchEvent(new StorageEvent('storage', { key: 'color-schema', newValue: set(dark[0]()) })))
   return dark
