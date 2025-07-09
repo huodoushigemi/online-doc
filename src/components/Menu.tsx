@@ -15,7 +15,6 @@ export function Menu(props) {
   
   const _Li = _e => {
     const ctx = useContext(MenuCtx)
-    log(ctx)
     const [e, attrs] = splitProps(_e, ['children', 'label', 'icon', 'isActive', 'cb', 'menu', 'popover'])
 
     let el!: HTMLDivElement
@@ -93,10 +92,6 @@ export function Menu(props) {
       </MenuCtx.Provider>
     )
   }
-
-  // createEffect(() => {
-  //   console.log('xxxx', props.items)
-  // })
 
   return <Li {...combineProps({}, props)} is={_Menu} items={null} children={props.items} />
 }
