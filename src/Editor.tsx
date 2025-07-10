@@ -32,7 +32,7 @@ import { ColumnsKit } from './extensions/Columns'
 import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
-import { menus } from "./context"
+import { menus, mounted } from "./context"
 import type { MemoOptions } from "solid-js"
 
 export function useEditorTransaction<T>(
@@ -185,6 +185,7 @@ export function TiptapEditor() {
   
   createRenderEffect(() => {
     window.editor = editor()
+    mounted(editor())
     editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
     editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
     editor().view.dom.spellcheck = false

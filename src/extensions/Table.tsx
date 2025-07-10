@@ -5,6 +5,7 @@ import { useEditorTransaction } from '../Editor'
 import { log } from '../utils'
 import { Floating } from '../components/Popover'
 import { Menu } from '../components/Menu'
+import { TableKit } from '@tiptap/extension-table'
 
 export const menus = []
 
@@ -46,12 +47,14 @@ export const mounted = (editor: Editor) => {
   const toRect = (e) => DOMRect.fromRect({ x: e.left, y: e.top, width: e.right - e.left, height: e.bottom - e.top })
   const rect = useEditorTransaction(editor, editor => table() && toRect(editor.view.coordsAtPos(table()!.pos)))
 
+  const menu = menus2(editor)
+  
   createEffect(() => {
     // if (!table()) return
     if (!rect()) return
     <Floating
       reference={{ getBoundingClientRect: () => rect()! }}
-      floating={<Menu items={menus2(editor)} />}
+      floating={<Menu x={true} items={menu()} />}
       placement={'top-end'}
       portal={document.body}
     />

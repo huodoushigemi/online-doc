@@ -55,3 +55,9 @@ export const menus = (editor: Editor) => {
     ...aaa.map(e => unFn(e) || []).flat()
   ])
 }
+
+
+export const mounted = async (editor: Editor) => {
+  const cbs = await Promise.all(Object.values(import.meta.glob('./extensions/*/', { import: 'mounted' }).map(e => e())))
+  cbs.forEach(e => e?.(editor))
+}
