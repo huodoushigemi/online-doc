@@ -63,7 +63,7 @@ export function Menu(props) {
         </div>
         {e.label}
         {/* {hover() && child() && <_Menu ref={setFloating}>{child()}</_Menu>} */}
-        {hover() && e.children && <_Menu ref={setFloating}>{e.children}</_Menu>}
+        {hover() && e.children && <_Menu ref={setFloating} class='z-1'>{e.children}</_Menu>}
       </div>
     )
   }
