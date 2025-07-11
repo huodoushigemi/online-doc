@@ -46,6 +46,7 @@ export const menus = (editor: Editor) => {
       { icon: () => <ILucideLink2 />, isActive: useActive(editor, 'link'), cb: () => exec(e => e.toggleLink({ href: '' })), popover: { portal: document.body, placement: 'top', floating: () => <LinkPane editor={editor} /> } },
       { icon: () => <ILucideHighlighter />, isActive: useActive(editor, 'highlight'), cb: () => exec(e => e.toggleHighlight()) },
       { icon: () => <IMyPaint />, isActive: useActive(editor, 'textStyle'), children: [{ is: ColorPane, get attrs() { return style() } }] },
+      { icon: () => <IMyClearFormat class='op50' />, cb: () => exec(e => e.unsetAllMarks()) },
     ] : [],
     
     // 通用

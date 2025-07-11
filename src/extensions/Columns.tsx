@@ -1,4 +1,4 @@
-import { Editor, findChildren, findParentNode, Node, type NodeViewRenderer, type NodeViewRendererProps, findParentNodeClosestToPos } from '@tiptap/core'
+import { Editor, findChildren, findParentNode, Node, type NodeViewRenderer, type NodeViewRendererProps, findParentNodeClosestToPos, mergeAttributes } from '@tiptap/core'
 import { Columns } from '../components/Columns'
 import { createNodeView } from './NodeView'
 import { createEffect, createMemo } from 'solid-js'
@@ -52,13 +52,16 @@ const El = props => <div {...props} />
 
 const ColExt = Node.create({
   name: 'column',
-  content: 'paragraph block*',
+  // content: 'paragraph block*',
+  content: 'block+',
+  isolating: true,
   parseHTML: () => [{ tag: '[tiptap-is="column"]' }],
   addAttributes: () => ({
     style: { parseHTML: el => `padding: 12px 0; ${el.style.cssText}` },
     'tiptap-is': { default: 'column' }
   }),
-  renderHTML: ({ node }) => ['div', { ...node.attrs }, 0],
+  // renderHTML: ({ node, HTMLAttributes }) => ['div', { ...mergeAttributes(node.attrs, HTMLAttributes) }, 0],
+  renderHTML: ({ node, HTMLAttributes }) => ['div', { ...node.attrs }, 0],
   addNodeView: () => createNodeView(El, { syncAttrs: ['style'], contentDOM: el => el }),
 })
 

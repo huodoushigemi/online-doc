@@ -9,7 +9,6 @@ import type { EditorOptions, ChainedCommands } from '@tiptap/core'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { TextStyleKit } from '@tiptap/extension-text-style'
-import { TableKit } from '@tiptap/extension-table'
 import { Focus, Placeholder } from '@tiptap/extensions'
 import { ListKit } from '@tiptap/extension-list'
 import Highlight from '@tiptap/extension-highlight'
@@ -29,6 +28,7 @@ import './tiptap.scss'
 import 'virtual:uno.css'
 
 import { ColumnsKit } from './extensions/Columns'
+import { TableKit } from './extensions/Table'
 import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
@@ -53,7 +53,7 @@ export function useEditorTransaction<T>(
   return createMemo(() => {
     depend()
     return read(access(instance))
-  }, options)
+  }, void 0, options)
 }
 
 export function chainReplace(editor: Editor) {

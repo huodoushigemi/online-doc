@@ -5,10 +5,11 @@ import { autoUpdate, createFloating, offset } from "floating-ui-solid"
 import { combineProps } from '@solid-primitives/props'
 import { pointerHover } from "@solid-primitives/pointer"
 import { createMutable } from "solid-js/store"
+import { delay } from "es-toolkit"
+import { log, unFn } from "../utils"
 import { VDir } from "../hooks/useDir"
-import { log } from "../utils"
 import { Popover } from "./Popover"
-import { render } from "solid-js/web"
+import { useSignle2 } from "../hooks"
 
 export function Menu(props) {
   const MenuCtx = createContext({ deep: 0 })
@@ -17,14 +18,16 @@ export function Menu(props) {
     const ctx = useContext(MenuCtx)
     const [e, attrs] = splitProps(_e, ['children', 'label', 'icon', 'isActive', 'cb', 'menu', 'popover'])
 
+    const x = createMemo(() => props.x && ctx.deep == 1)
+
     let el!: HTMLDivElement
     const [floating, setFloating] = createSignal<HTMLElement>()
-    const [hover, setHover] = createSignal(false)
+    const [hover, setHover] = useSignle2(false, { before: () => delay(100) })
     pointerHover
     
     const style = createMemo(() => floating() ? createFloating({
       strategy: 'fixed',
-      placement: 'right-start',
+      placement: x() ? 'bottom-start' : 'right-start',
       ...e.menu,
       elements: { reference: () => el, floating },
       whileElementsMounted(ref, float, update) {
@@ -55,10 +58,10 @@ export function Menu(props) {
       <div
         ref={el}
         use:pointerHover={setHover}
-        {...combineProps({ class: `li flex aic rd-2 ${props.x && ctx.deep == 1 ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${e.isActive?.() && 'active'}` }, attrs)}
+        {...combineProps({ class: `li flex aic rd-2 ${x() ? 'my-1 p-1' : 'mx-1 pl-1 pr-4 py-1'} ${unFn(e.isActive) && 'active'}` }, attrs)}
         on:click={onClick}
       >
-        <div class={`flex aic ${props.x && ctx.deep == 1 ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
+        <div class={`flex aic ${x() ? '' : props.density == 'comfortable' ? 'ml-1 mr-2.5' : 'ml-.5 mr-1'} `}>
           {req.loading ? <IMyLoading /> : e.icon}
         </div>
         {e.label}

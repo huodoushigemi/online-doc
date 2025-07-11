@@ -1,16 +1,34 @@
-import { findParentNode, findParentNodeClosestToPos, type Editor } from '@tiptap/core'
+import { findParentNode, findParentNodeClosestToPos, NodeView, type Editor, type NodeViewRenderer } from '@tiptap/core'
 import { createEffect, createMemo, useTransition } from 'solid-js'
 import { xor } from 'es-toolkit'
-import { useEditorTransaction } from '../Editor'
-import { log } from '../utils'
+import { useActive, useEditorTransaction } from '../Editor'
 import { Floating } from '../components/Popover'
 import { Menu } from '../components/Menu'
-import { TableKit } from '@tiptap/extension-table'
+import { Table as _Table, TableView } from '@tiptap/extension-table'
+
+class View extends TableView implements ReturnType<NodeViewRenderer> {
+  constructor(node, cellMinWidth) {
+    super(node, cellMinWidth)
+    this.table.style.fontSize = '22px'
+  }
+  destroy() {
+
+  }
+}
+
+const addOptions = _Table.config.addOptions
+_Table.config.addOptions = function() {
+  return {
+    ...addOptions?.call(this),
+    View
+  }
+}
+
+export { TableKit } from '@tiptap/extension-table'
 
 export const menus = []
 
 const menus2 = (editor: Editor) => {
-  editor.state.doc.nodeAt
   const name = ['tableCell', 'tableHeader']
   const cell = useEditorTransaction(editor, editor => (
     editor.state.selection.ranges.map(e => findParentNodeClosestToPos(e.$from, e => name.includes(e.type.name))?.node).filter(e => e)
@@ -21,6 +39,8 @@ const menus2 = (editor: Editor) => {
   return createMemo(() => {
     if (!cell().length) return
     const ret = [] as any[]
+
+    ret.push({ label: '表头', isActive: useActive(editor, 'tableHeader'), cb: () => editor.chain().toggleHeaderCell().run() })
 
     if (cell().length == 1) {
       if (cell()[0]!.attrs.colspan > 1 || cell()[0]?.attrs.rowspan > 1) {
@@ -41,20 +61,16 @@ const menus2 = (editor: Editor) => {
 }
 
 export const mounted = (editor: Editor) => {
-  const table = useEditorTransaction(editor, editor => findParentNodeClosestToPos(editor.state.selection.$from, node => node.type.name == 'table'))
-  // editor.
-
-  const toRect = (e) => DOMRect.fromRect({ x: e.left, y: e.top, width: e.right - e.left, height: e.bottom - e.top })
-  const rect = useEditorTransaction(editor, editor => table() && toRect(editor.view.coordsAtPos(table()!.pos)))
+  const pos = useEditorTransaction(editor, editor => findParentNodeClosestToPos(editor.state.selection.$from, node => node.type.name == 'table')?.pos)
+  const rect = createMemo(() => pos() != null ? (editor.view.nodeDOM(pos()!) as HTMLElement)?.querySelector('& > table')?.getBoundingClientRect() : void 0)
 
   const menu = menus2(editor)
   
   createEffect(() => {
-    // if (!table()) return
     if (!rect()) return
     <Floating
       reference={{ getBoundingClientRect: () => rect()! }}
-      floating={<Menu x={true} items={menu()} />}
+      floating={<div><Menu x={true} items={menu()} /></div>}
       placement={'top-end'}
       portal={document.body}
     />
