@@ -1,5 +1,4 @@
 import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect, createComputed } from "solid-js"
-import { Dynamic, Portal } from 'solid-js/web'
 import { createMutable } from "solid-js/store"
 import { inRange, pickBy } from "es-toolkit"
 import { isEmpty } from "es-toolkit/compat"
@@ -18,8 +17,6 @@ import { useDark, useMemoAsync } from "./hooks"
 import { VDir } from './hooks/useDir'
 import { BubbleMenu, FloatingMenu, LinkPane } from './Floating'
 import { chooseImage, file2base64, log } from './utils'
-import { Floating, Popover } from './components/Popover'
-import { offset } from 'floating-ui-solid'
 import { Menu } from './components/Menu'
 
 

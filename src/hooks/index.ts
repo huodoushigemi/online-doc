@@ -1,13 +1,13 @@
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createEventListener } from '@solid-primitives/event-listener'
 import { createPointerListeners } from '@solid-primitives/pointer'
-import { access, type MaybeAccessor } from '@solid-primitives/utils'
+import { access, type Many, type MaybeAccessor } from '@solid-primitives/utils'
 import { createComputed, createEffect, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { makePersisted, storageSync } from '@solid-primitives/storage'
 import { createPrefersDark } from '@solid-primitives/media'
 import { unFn } from '../utils'
-import { isFunction } from 'es-toolkit'
+import { isFunction, isPromise } from 'es-toolkit'
 
 interface UseDragOptions {
   start?(
@@ -85,18 +85,26 @@ export function useMemoAsync<T>(fn: () => Promise<T> | T, init?: Awaited<T>) {
   return val
 }
 
-export function useSignle2<T>(v: T | (() => T), opt?: { before?: (v: T) => Promise<any> }) {
+export function useSignle2<T>(v: T | (() => T), opt?: { before?: (v: T) => Promise<T | void> | T }) {
   const state = createSignal(isFunction(v) ? void 0 : v)
+  const before = v => {
+    const v2 = opt?.before?.(v)
+    return isPromise(v2) ? v2.then(v3 => v3 === void 0 ? v : v3) : v2 ?? v
+  }
   
-  const val = useMemoAsync(() => {
-    const v2 = state[0]() as T
-    return opt?.before?.(v2).then(v => v === void 0 ? v2 : v) ?? v2
-  })
+  const val = useMemoAsync(() => before(state[0]() as T))
 
   if (isFunction(v)) {
-    const fned = useMemoAsync(() => (v2 => opt?.before?.(v2) ?? v2)(v()))
-    createComputed(() => val[1](fned()))
+    const fned = useMemoAsync(() => before(v()))
+    createComputed(() => state[1](fned()))
   }
 
   return [val, state[1]] as Signal<T>
+}
+
+export function useHover(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
+  const [hover, setHover] = createSignal(false)
+  createEventListener(el, 'pointerenter', () => setHover(true))
+  createEventListener(el, 'pointerleave', () => setHover(false))
+  return hover
 }

@@ -7,6 +7,8 @@ import { Floating, Popover } from './components/Popover'
 import { saveAs } from 'file-saver'
 import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
+import { Split } from './components/Split'
+import { render } from 'solid-js/web'
 
 const log = (a) => console.log(a)
 
