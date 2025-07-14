@@ -1,6 +1,7 @@
 import { createElementBounds } from '@solid-primitives/bounds'
 import { children, createEffect, createMemo, For, Index, mergeProps, onMount, splitProps, type JSXElement } from 'solid-js'
 import { Portal } from 'solid-js/web'
+import { log } from '../utils'
 
 type SplitProps = {
   container?: HTMLElement
@@ -39,7 +40,7 @@ export const useSplit = (props: SplitProps) => {
     : `transform: translate(${e.left}px, ${(bool ? e.top : e.top + e.height) - (props.size! / 2)}px); width: ${e.width}px; height: ${props.size}px;`
 
   const Handle = (e) => (
-    <div class='absolute z-1' style={style({ ...e.e, left: e.e.left - rect.left, top: e.e.top - rect.top }, e.bool)}>{props.handle?.(props.i)}</div>
+    <div class='absolute z-1' style={style({ ...e.e, left: e.e.left - rect.left, top: e.e.top - rect.top }, e.bool)}>{props.handle?.(e.i)}</div>
   )
 
   ; //

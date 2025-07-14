@@ -14,10 +14,12 @@ import { useHover, useSignle2 } from '../hooks'
 import { offset } from 'floating-ui-solid'
 import { Split } from '../components/Split'
 
+declare const editor: Editor
+
 class View extends TableView implements ReturnType<NodeViewRenderer> {
   constructor(node: NodePos['node'], cellMinWidth) {
     super(node, cellMinWidth)
-    // this.table.style.fontSize = '22px'
+    // editor.state.selection.$from.start
 
     this.destroy = render(() => {
       const [view, setView] = createSignal<HTMLElement>()
@@ -36,8 +38,9 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
 
       const Dot = (props) => (
         <div class={`flex ${props.x ? 'justify-center w-full' : 'aic h-full'}`}>
-          <div class={`flex-shrink-0 flex justify-center aic bg-gray/25 rd-full hover:scale-[2] ${props.x ? 'translate-y--1/2' : 'translate-x--1/2'}`} onClick={props.onAdd}>
-            <ILucideCirclePlus class='w-2 h-2 op0 hover:op100 c-gray' />
+          <div class={`flex-shrink-0 flex justify-center aic w-4 h-4 rd-full group ${props.x ? 'translate-y--1/2' : 'translate-x--1/2'}`} onClick={props.onAdd}>
+            <div class='absolute w-1 h-1 bg-gray/20' />
+            <ILucideCirclePlus class='absolute z-1 flex justify-center aic w-4 h-4 op0 hover:op100 c-gray' />
           </div>
         </div>
       )
@@ -46,7 +49,7 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
       <Floating
         reference={this.table}
         floating={() => (
-          <Split class='absolute flex h-4' both handle={i => <Dot i={i} x onAdd={() => {editor.commands.addColumnBefore()}} />}>
+          <Split class='absolute flex h-2' both handle={i => <Dot i={i} x onAdd={() => addColumn(i)} />}>
             <Index each={widths()}>
               {(v, i) => <div class='cell-handle' style={`width: ${v()}px;`} onClick={() => selectCol(i)}></div>}
             </Index>
@@ -60,7 +63,7 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
       <Floating
         reference={this.table}
         floating={() => (
-          <Split class='absolute flex flex-col w-4' dir='y' both handle={i => <Dot i={i} />}>
+          <Split class='absolute flex flex-col w-2' dir='y' both handle={i => <Dot i={i} />}>
             <Index each={heights()}>
               {(v, i) => <div class='cell-handle' style={`height: ${v()}px;`} onClick={() => selectRow(i)}></div>}
             </Index>
@@ -72,16 +75,27 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
 
       // todo rowspan
       function selectRow(i) {
-        declare const editor: Editor
         const tds = node.children[i].children
         editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
       }
 
       // todo colspan
       function selectCol(i) {
-        declare const editor: Editor
         const tds = node.children.map(e => e.children[i])
         editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
+      }
+
+      // todo colspan
+      async function addColumn(i: number) {
+        const tds = node.children[0].children
+        const cols = tds.reduce((o, e) => o + e.attrs.colspan, 0)
+        const pos = getPos(editor, tds[Math.min(i, cols - 1)])
+        // editor.commands.focus(pos)
+        await Promise.resolve()
+        log(i, pos)
+        i < cols
+          ? editor.chain().focus(pos).addColumnBefore().run()
+          : editor.chain().focus(pos).addColumnAfter().run()
       }
       
       return <div ref={setView} style={`display: ${hvoer() || 'none'}`} />
