@@ -2,17 +2,17 @@ import { createSignal, For, Index, onCleanup } from 'solid-js'
 import { render } from 'solid-js/web'
 import { Editor, findParentNode, findParentNodeClosestToPos, NodePos, NodeView, type NodeViewRenderer } from '@tiptap/core'
 import { createEffect, createMemo, useTransition } from 'solid-js'
-import { delay, isEqual, xor } from 'es-toolkit'
+import { chunk, delay, isEqual, xor } from 'es-toolkit'
 import { getPos, useActive, useEditorTransaction } from '../Editor'
 import { Floating } from '../components/Popover'
 import { Menu } from '../components/Menu'
 import { Table as _Table, TableView } from '@tiptap/extension-table'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
-import { createElementBounds, getElementBounds } from '@solid-primitives/bounds'
-import { log } from '../utils'
+import { findret, log } from '../utils'
 import { useHover, useSignle2 } from '../hooks'
 import { offset } from 'floating-ui-solid'
 import { Split } from '../components/Split'
+import { TableMap } from 'prosemirror-tables'
 
 declare const editor: Editor
 
@@ -63,7 +63,7 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
       <Floating
         reference={this.table}
         floating={() => (
-          <Split class='absolute flex flex-col w-2' dir='y' both handle={i => <Dot i={i} />}>
+          <Split class='absolute flex flex-col w-2' dir='y' both handle={i => <Dot i={i} onAdd={() => addRow(i)} />}>
             <Index each={heights()}>
               {(v, i) => <div class='cell-handle' style={`height: ${v()}px;`} onClick={() => selectRow(i)}></div>}
             </Index>
@@ -73,35 +73,49 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
         placement={'left-start'}
       />
 
-      // todo rowspan
-      function selectRow(i) {
-        const tds = node.children[i].children
-        editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
-      }
-
-      // todo colspan
-      function selectCol(i) {
-        const tds = node.children.map(e => e.children[i])
-        editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
-      }
-
-      // todo colspan
-      async function addColumn(i: number) {
-        const tds = node.children[0].children
-        const cols = tds.reduce((o, e) => o + e.attrs.colspan, 0)
-        const pos = getPos(editor, tds[Math.min(i, cols - 1)])
-        // editor.commands.focus(pos)
-        await Promise.resolve()
-        log(i, pos)
-        i < cols
-          ? editor.chain().focus(pos).addColumnBefore().run()
-          : editor.chain().focus(pos).addColumnAfter().run()
-      }
-      
       return <div ref={setView} style={`display: ${hvoer() || 'none'}`} />
     }, document.body.appendChild(<div></div>))
+
+    const that = this
+
+    // todo rowspan
+    function selectRow(i) {
+      const tds = that.node.children[i].children
+      editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
+    }
+
+    // todo colspan
+    function selectCol(i) {
+      const tds = that.node.children.map(e => e.children[i])
+      editor.commands.setCellSelection({ anchorCell: getPos(editor, tds[0]),  headCell: getPos(editor, tds[tds.length - 1]) })
+    }
+
+    function addColumn(i: number) {
+      const map = TableMap.get(that.node)
+      const table = chunk(map.map, map.width)
+      if (i < map.width) {
+        const pos = findret(table, cells => cells[i] != cells[i - 1] ? cells[i] : void 0) || 1
+        const pos2 = getPos(editor, that.node) + pos + 1
+        editor.chain().focus(pos2).addColumnBefore().goToPreviousCell().run()
+      } else {
+        const pos = getPos(editor, that.node) + table[0][table[0].length - 1] + 1
+        editor.chain().focus(pos).addColumnAfter().goToNextCell().run()
+      }
+    }
+
+    function addRow(i: number) {
+      const map = TableMap.get(that.node)
+      const table = chunk(map.map, map.width)
+      if (i < map.height) {
+        const pos = findret(table[i], (td, col) => td != table[i - 1]?.[col] ? td : void 0) || 1
+        const pos2 = getPos(editor, that.node) + pos + 1
+        editor.chain().focus(pos2).addRowBefore().focus(pos2).run()
+      } else {
+        const pos = getPos(editor, that.node) + table[i - 1][0] + 1
+        editor.chain().focus(pos).addRowAfter().run()
+      }
+    }
   }
-  // destroy?: (() => void) | undefined/
 }
 
 const addOptions = _Table.config.addOptions
@@ -111,14 +125,6 @@ _Table.config.addOptions = function() {
     View
   }
 }
-
-// import { TableKit as _TableKit } from '@tiptap/extension-table'
-
-// export const TableKit = _TableKit.extend({
-//   addCommands: () => ({
-//     selectTableRow: () => 
-//   })
-// })
 
 export { TableKit } from '@tiptap/extension-table'
 

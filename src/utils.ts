@@ -67,3 +67,10 @@ export const unFn = (fn, ...args) => typeof fn == 'function' ? fn(...args) : fn
 export const log = (...args) => (console.log(...args), args[0])
 
 export const parseStyle = s => s ? s.split(';').reduce((o, e) => ((([k, v]) => o[k.trim()] = v.trim())(e.split(':')), o), {}) : {}
+
+export function findret<T, R>(arr: readonly T[], cb: (e: T, i: number) => R): R | undefined {
+  for (let i = 0; i < arr.length; i++) {
+    const ret = cb(arr[i], i)
+    if (ret != null) return ret
+  }
+}

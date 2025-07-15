@@ -39,6 +39,7 @@
     "html-docx-js-typescript": "^0.1.5",
     "moveable": "^0.53.0",
     "prosemirror-state": "^1.4.3",
+    "prosemirror-tables": "^1.7.1",
     "shiki": "^3.6.0",
     "solid-js": "^1.9.5",
     "tiptap-extension-code-block-shiki": "^0.5.1",
