@@ -9,6 +9,7 @@ import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
 import { Split } from './components/Split'
 import { render } from 'solid-js/web'
+import { DocTree } from './components/DocTree'
 
 const log = (a) => console.log(a)
 
@@ -49,7 +50,10 @@ function App() {
         </div>
       </header>
 
-      <TiptapEditor />
+      <DocTree editor={window.editor} class='sticky top-14 left-0 m-4 w-40' />
+
+      <TiptapEditor class='' />
+
     </div>
   )
 }

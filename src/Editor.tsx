@@ -169,7 +169,7 @@ export async function html2md(html: string) {
 }
 
 // 编辑器 组件
-export function TiptapEditor() {
+export function TiptapEditor(props) {
   const [isDark] = useDark()
 
   const editor = useEditor(() => ({
@@ -217,7 +217,7 @@ export function TiptapEditor() {
   ]
 
   return (
-    <div class=''>
+    <div class='' {...props}>
       {/* 编辑区域 */}
       {/* <Portal useShadow={true}> */}
         {editor().view.dom}
