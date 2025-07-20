@@ -11,8 +11,6 @@ import { Split } from './components/Split'
 import { render } from 'solid-js/web'
 import { DocTree } from './components/DocTree'
 
-const log = (a) => console.log(a)
-
 const [isDark, setDark] = useDark()
 
 createRenderEffect(() => {
@@ -50,7 +48,7 @@ function App() {
         </div>
       </header>
 
-      <DocTree editor={window.editor} class='sticky top-14 left-0 m-4 w-40' />
+      <DocTree editor={window.editor} class='fixed top-14 left-0 m-4 w-40' />
 
       <TiptapEditor class='' />
 

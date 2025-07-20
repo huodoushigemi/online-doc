@@ -15,10 +15,7 @@ export function DocTree(_: { editor: Editor }) {
   const json = useMemoAsync(() => (count(), delay(300).then(() => props.editor.getJSON())))
   
   class Node extends $Node {
-    constructor(data) {
-      super(data)
-    }
-    get id() { return this.data.id }
+    // get id() { return this.data.id }
     get label() { return this.data.type }
     getChildren() { return this.data.content?.map(e => new Node(e)) }
   }
@@ -26,7 +23,7 @@ export function DocTree(_: { editor: Editor }) {
   return (
     <div class="doc-tree" {...attrs}>
       {/* <pre>{JSON.stringify(json(), null, 2)}</pre> */}
-      <Tree data={json() || {}} Node={Node} class='min-h-40 overflow-auto' />
+      <Tree data={json()?.content} Node={Node} class='min-h-40 max-h-100 overflow-auto' />
     </div>
   )
 }
