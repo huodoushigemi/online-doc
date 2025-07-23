@@ -4,8 +4,7 @@ import { Editor, Node } from '@tiptap/core'
 import { createNodeView } from './NodeView'
 import { isSelcet, useEditorTransaction } from '../Editor'
 import { useMoveable } from '../components/Moveable'
-import { model, toSignle } from '../hooks'
-import { log } from '../utils'
+import { model, toSignle, useHover, useMouseDown } from '../hooks'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -17,8 +16,18 @@ declare module '@tiptap/core' {
 
 function _Image(props) {
   let ref
-  const focused = useEditorTransaction(() => props._nvrp.editor, editor => isSelcet(editor, props._nvrp.node))
-  useMoveable(() => focused() ? ref : void 0, { useResizeObserver: true })
+  const ins = useMoveable(() => ref, { useResizeObserver: true })
+  const show = [
+    useEditorTransaction(() => props._nvrp.editor, editor => isSelcet(editor, props._nvrp.node)),
+    useHover(() => ref),
+    useHover(() => ins()?.selfElement),
+    useMouseDown(() => ins()?.selfElement)
+  ]
+  createEffect(() => {
+    if (!ins()) return
+    ins()?.updateRect()
+    ins()!.selfElement.style.opacity = show.some(v => v()) ? '100' : '0'
+  })
   return <img ref={ref} {...props}  />
 }
 

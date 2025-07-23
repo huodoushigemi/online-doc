@@ -1,7 +1,8 @@
 import { access, type MaybeAccessor } from '@solid-primitives/utils'
 import { round } from 'es-toolkit'
-import moveable, { type MoveableProps } from 'moveable'
-import { createEffect, onCleanup } from 'solid-js'
+import type { MoveableProps } from 'moveable'
+import { createEffect, createMemo, onCleanup } from 'solid-js'
+import { useMemoAsync } from '../hooks'
 
 export function Moveable(props: MoveableProps) {
   const view = <div />
@@ -20,9 +21,11 @@ export function Moveable(props: MoveableProps) {
 }
 
 export function useMoveable(el: MaybeAccessor<HTMLElement>, opt?: MoveableProps) {
-  createEffect(() => {
+  const moveable = useMemoAsync(() => import('moveable').then(e => e.default))
+  return createMemo(() => {
     if (opt?.disabled) return
-    const ins = new moveable(document.body, { target: access(el), resizable: true, origin: false, ...opt })
+    if (!moveable()) return
+    const ins = new (moveable())(document.body, { target: access(el), resizable: true, origin: false, ...opt })
     ins.on('resize', e => {
       const el = e.target as HTMLElement
       const w = Math.max(e.width, 50), h = Math.max(e.height, 50)
@@ -31,5 +34,6 @@ export function useMoveable(el: MaybeAccessor<HTMLElement>, opt?: MoveableProps)
       round(h) == round(el.offsetHeight) || (e.target.style.height = `${h}px`)
     })
     onCleanup(() => ins.destroy())
+    return ins
   })
 }

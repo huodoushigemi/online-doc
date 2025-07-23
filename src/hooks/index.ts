@@ -6,7 +6,7 @@ import { createComputed, createEffect, createRenderEffect, createRoot, createSig
 import { createMutable } from 'solid-js/store'
 import { makePersisted, storageSync } from '@solid-primitives/storage'
 import { createPrefersDark } from '@solid-primitives/media'
-import { unFn } from '../utils'
+import { log, unFn } from '../utils'
 import { isFunction, isPromise } from 'es-toolkit'
 
 interface UseDragOptions {
@@ -80,7 +80,7 @@ export function useMemoAsync<T>(fn: () => Promise<T> | T, init?: Awaited<T>) {
       ret.then(resolve)
       onCleanup(() => resolve(REJECT))
     }) : ret
-    v == REJECT || setVal(v)
+    v == REJECT || setVal(() => v)
   })
   return val
 }
@@ -93,7 +93,7 @@ export function useSignle2<T>(v: T | (() => T), opt?: { before?: (v: T) => Promi
   }
   
   const val = useMemoAsync(() => before(state[0]() as T))
-
+a
   if (isFunction(v)) {
     const fned = useMemoAsync(() => before(v()))
     createComputed(() => state[1](fned()))
@@ -107,4 +107,11 @@ export function useHover(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
   createEventListener(el, 'pointerenter', () => setHover(true))
   createEventListener(el, 'pointerleave', () => setHover(false))
   return hover
+}
+
+export function useMouseDown(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
+  const [down, setDown] = createSignal(false)
+  createEventListener(el, 'pointerdown', () => setDown(true))
+  createEventListener(document.body, 'pointerup', () => setDown(false))
+  return down
 }

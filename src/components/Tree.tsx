@@ -1,8 +1,8 @@
 import { createEffect, createMemo, createSignal, For, Index, on, onCleanup, splitProps } from 'solid-js'
+import { Dynamic } from 'solid-js/web'
 import { createLazyMemo } from '@solid-primitives/memo'
 import { combineProps } from '@solid-primitives/props'
 import { castArray } from 'es-toolkit/compat'
-import { log } from '../utils'
 
 function define(that, key) {
   const signal = createSignal()
@@ -35,7 +35,7 @@ export abstract class $Node {
 
   // abstract get Node(data): $Node
   // abstract get id(): any
-  abstract get label(): string
+  get label() { return this.data.label }
   abstract getChildren(): $Node[] | undefined
   
   declare children: $Node[] | undefined
@@ -76,27 +76,34 @@ export abstract class $Node {
   }
 }
 
-export function Tree(_: { data: any; Node: { new (data: any): $Node } }) {
+export class $TreeItem extends $Node {
+  get is() { return this.data.is }
+  get props() { return this.data }
+  get id() { return this.data.id }
+  getChildren() { return this.data.children?.map(e => new $TreeItem(e)) }
+}
+
+export function Tree(_: { data: any; Node: { new (data: any): $TreeItem } }) {
   const [props, attrs] = splitProps(_, ['data', 'Node'])
 
-  const Node = props.Node ?? class _Node extends $Node {
-    get id() { return this.data.id }
-    get label() { return this.data.label }
-    getChildren() { return this.data.children?.map(e => new _Node(e)) }
-  }
+  const Node = props.Node ?? $TreeItem
 
   const root = createMemo(() => new (class extends Node {
-    get label() { return '' }
     getChildren() { return castArray(this.data || []).map(e  => new Node(e)) }
   })(props.data))
 
-  const flated = createMemo(() => root().descendants)
+  const flated = createMemo(() => root().descendants as $TreeItem[])
 
   return (
     <div {...combineProps({ class: 'tt-menu' }, attrs)}>
       <Index each={flated()}>
         {(node, index) => (
-          <div class='li py-1 px-4' style={`padding-left: ${(node().deep) * 16}px`}>{ node().label }</div>
+          <Dynamic
+            component={node().is ?? 'div'}
+            {...combineProps({ class: 'li py-1 px-4', style: `padding-left: ${(node().deep) * 16}px` }, node().props)}
+          >
+            {node().label}
+          </Dynamic>
         )}
       </Index>
     </div>
