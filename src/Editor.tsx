@@ -1,4 +1,4 @@
-import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect, createComputed } from "solid-js"
+import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect, createComputed, splitProps } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { inRange, pickBy } from "es-toolkit"
 import { isEmpty } from "es-toolkit/compat"
@@ -19,10 +19,14 @@ import { BubbleMenu, FloatingMenu, LinkPane } from './Floating'
 import { chooseImage, file2base64, log } from './utils'
 import { Menu } from './components/Menu'
 
-
+import 'virtual:uno.css'
 import './index.scss'
 import './tiptap.scss'
-import 'virtual:uno.css'
+
+import css1 from 'virtual:uno.css?raw'
+import css2 from './index.scss?inline'
+import css3 from './tiptap.scss?inline'
+const css = [css1, css2, css3].join('\n')
 
 import { ColumnsKit } from './extensions/Columns'
 import { TableKit } from './extensions/Table'
@@ -169,22 +173,24 @@ export async function html2md(html: string) {
 }
 
 // 编辑器 组件
-export function TiptapEditor(props) {
+export function TiptapEditor(_: { editor?: Editor }) {
+  const [props, attrs] = splitProps(_, ['editor', 'children'])
   const [isDark] = useDark()
 
-  const editor = useEditor(() => ({
+  const editor = createMemo(() => props.editor || useEditor(() => ({
     // content: `<h1>wc-mdit</h1><p>A markdown-to-html web component.</p><h2>⚙️ Installation</h2><ul><li><p>npm</p></li></ul><pre><code>npm i wc-mdit</code></pre><ul><li><p>scripts</p></li></ul><pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"&gt;&lt;/script&gt;\n&lt;script src="https://cdn.jsdelivr.net/npm/wc-mdit/dist/wc-mdit.umd.js"&gt;&lt;/script&gt;</code></pre><h2>🚀 Example</h2><pre><code>import 'wc-mdit'\n\nfunction App() {\n  return (\n    &lt;wc-mdit content='# H1' theme='github-dark' /&gt;\n    // or\n    &lt;wc-mdit src="https://raw.githubusercontent.com/huodoushigemi/wc-mdit/refs/heads/main/README.md" theme='github-dark' /&gt;\n  )\n}</code></pre><h2>📄 Props</h2><table style="min-width: 150px"><colgroup><col style="min-width: 50px"><col style="min-width: 50px"><col style="min-width: 50px"></colgroup><tbody><tr><th colspan="1" rowspan="1"><p>Attribute</p></th><th colspan="1" rowspan="1"><p>Type</p></th><th colspan="1" rowspan="1"><p>Description</p></th></tr><tr><td colspan="1" rowspan="1"><p>src</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>URL to external markdown file.</p></td></tr><tr><td colspan="1" rowspan="1"><p>content</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>theme</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p></p></td></tr><tr><td colspan="1" rowspan="1"><p>css</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p><code>&lt;style&gt;{css}&lt;/style&gt;</code></p></td></tr><tr><td colspan="1" rowspan="1"><p>no-shadow</p></td><td colspan="1" rowspan="1"><p>Boolean</p></td><td colspan="1" rowspan="1"><p>If set, renders and stamps into <strong>light DOM</strong> instead. Please know what you are doing.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-class</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Class names forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>body-style</p></td><td colspan="1" rowspan="1"><p>String</p></td><td colspan="1" rowspan="1"><p>Style forwarded to <code>.markdown-body</code> block.</p></td></tr><tr><td colspan="1" rowspan="1"><p>options</p></td><td colspan="1" rowspan="1"><p>Object</p></td><td colspan="1" rowspan="1"><p><code>new MarkdownIt(options)</code></p></td></tr></tbody></table><p></p>`
     content: ``
-  }))
+  }))())
 
   const sss = createMemo(() => menus(editor()))
+
   const _menus = createMemo(() => sss()())
   
   createRenderEffect(() => {
     window.editor = editor()
     mounted(editor())
     editor().view.dom.classList.add(...'outline-0 flex-1'.split(' '))
-    editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px] mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
+    editor().view.dom.classList.add(...`markdown-body max-w-[794px] min-h-[1123px]! mx-a! my-20! p10 box-border shadow-lg dark-bg-gray/05`.split(' '))
     editor().view.dom.spellcheck = false
     editor().commands.focus()
   })
@@ -217,11 +223,12 @@ export function TiptapEditor(props) {
   ]
 
   return (
-    <div class='' {...props}>
+    <div class='' {...attrs}>
+      {props.children}
       {/* 编辑区域 */}
       {/* <Portal useShadow={true}> */}
         {editor().view.dom}
-        <style>{/*@once*/ useMemoAsync(() => import('./tiptap.scss?url').then(e => fetch(e.default, { method: 'GET' }).then(e => e.text()))) as unknown as string}</style>
+        <style>{css}</style>
         <style>{/*@once*/ useMemoAsync(() => (isDark() ? import('wc-mdit/dist/theme/github-dark.css?raw') : import('wc-mdit/dist/theme/github-light.css?raw')).then(e => e.default)) as unknown as string}</style>
       {/* </Portal> */}
 

@@ -7,9 +7,8 @@ import { Floating, Popover } from './components/Popover'
 import { saveAs } from 'file-saver'
 import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
-import { Split } from './components/Split'
-import { render } from 'solid-js/web'
 import { DocTree } from './components/DocTree'
+import './web-component'
 
 const [isDark, setDark] = useDark()
 
@@ -50,7 +49,8 @@ function App() {
 
       <DocTree editor={window.editor} class='fixed top-14 left-0 m-4 w-40' />
 
-      <TiptapEditor class='' />
+      {/* <TiptapEditor class='' /> */}
+      <wc-tiptap />
 
     </div>
   )

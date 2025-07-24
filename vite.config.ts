@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import solid from 'vite-plugin-solid'
 
 export default defineConfig({
@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [
     solid(),
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('vanilla-js'),
+    
     (await import('unocss/vite')).default({
       content: {
         pipeline: {
@@ -29,6 +30,11 @@ export default defineConfig({
         aic: 'items-center',
       },
     }),
+    {
+      enforce: 'post',
+      transform: (code, id) => /__uno.css(.*?raw)$/.test(id) ? `export default \`${code.replaceAll('\\', '\\\\')}\`` : void 0
+    } as Plugin,
+
     (await import('unplugin-auto-import/vite')).default({
       dts: './src/types/auto-imports.d.ts',
       resolvers: [(await import('unplugin-icons/resolver')).default({ extension: 'jsx', customCollections: ['my'] })]
