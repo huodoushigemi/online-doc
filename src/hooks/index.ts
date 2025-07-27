@@ -93,7 +93,7 @@ export function useSignle2<T>(v: T | (() => T), opt?: { before?: (v: T) => Promi
   }
   
   const val = useMemoAsync(() => before(state[0]() as T))
-a
+
   if (isFunction(v)) {
     const fned = useMemoAsync(() => before(v()))
     createComputed(() => state[1](fned()))
