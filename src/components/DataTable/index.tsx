@@ -11,6 +11,28 @@ import type { DataTableProps, Field, FieldType, TableRow, TableTheme, SelectionR
 export * from './types'
 import './DataTable.scss';
 
+// 自动导入 fields 目录下所有 *Field.tsx
+const modules = import.meta.glob('./fields/*Field.tsx', { eager: true });
+const fieldTypeMap: Record<string, any> = {};
+for (const path in modules) {
+  // 文件名如 ./fields/TextField.tsx => text
+  const match = path.match(/\.\/fields\/(\w+)Field\.tsx$/i);
+  if (match) {
+    const type = match[1].toLowerCase();
+    fieldTypeMap[type] = modules[path];
+  }
+}
+
+function getCellRenderer(field: Field) {
+  return fieldTypeMap[field.type]?.CellRenderer;
+}
+function getCellEditor(field: Field) {
+  return fieldTypeMap[field.type]?.CellEditor;
+}
+function getCellValidator(field: Field) {
+  return fieldTypeMap[field.type]?.cellValidator;
+}
+
 const DataTable: Component<DataTableProps> = (props) => {
   const [gridApi, setGridApi] = createSignal<GridApi | null>(null);
   const [columnApi, setColumnApi] = createSignal<ColumnApi | null>(null);
@@ -105,70 +127,12 @@ const DataTable: Component<DataTableProps> = (props) => {
     });
   };
 
-  // 获取单元格编辑器
-  const getCellEditor = (field: Field) => {
-    switch (field.type) {
-      case 'select':
-        return 'agSelectCellEditor';
-      case 'date':
-        return 'agDateCellEditor';
-      default:
-        return 'agTextCellEditor';
-    }
-  };
-
   // 获取单元格编辑器参数
   const getCellEditorParams = (field: Field) => {
     if (field.type === 'select' && field.options) {
       return { values: field.options };
     }
     return {};
-  };
-
-  // 获取单元格渲染器
-  const getCellRenderer = (field: Field) => {
-    switch (field.type) {
-      case 'date':
-        return (params: any) => {
-          if (params.value) {
-            return new Date(params.value).toLocaleDateString();
-          }
-          return '';
-        };
-      case 'number':
-        return (params: any) => {
-          if (typeof params.value === 'number') {
-            return params.value.toLocaleString();
-          }
-          return params.value;
-        };
-      default:
-        return undefined;
-    }
-  };
-
-  // 获取单元格验证器
-  const getCellValidator = (field: Field) => {
-    if (!field.validation) return undefined;
-
-    return (params: any) => {
-      const value = params.value;
-      const validation = field.validation!;
-
-      if (validation.min !== undefined && value < validation.min) {
-        return validation.message || `最小值不能小于 ${validation.min}`;
-      }
-
-      if (validation.max !== undefined && value > validation.max) {
-        return validation.message || `最大值不能大于 ${validation.max}`;
-      }
-
-      if (validation.pattern && !new RegExp(validation.pattern).test(value)) {
-        return validation.message || '格式不正确';
-      }
-
-      return true;
-    };
   };
 
   // 评估公式
