@@ -23,16 +23,6 @@ for (const path in modules) {
   }
 }
 
-function getCellRenderer(field: Field) {
-  return fieldTypeMap[field.type]?.CellRenderer;
-}
-function getCellEditor(field: Field) {
-  return fieldTypeMap[field.type]?.CellEditor;
-}
-function getCellValidator(field: Field) {
-  return fieldTypeMap[field.type]?.cellValidator;
-}
-
 const DataTable: Component<DataTableProps> = (props) => {
   const [gridApi, setGridApi] = createSignal<GridApi | null>(null);
   const [columnApi, setColumnApi] = createSignal<ColumnApi | null>(null);
@@ -99,54 +89,16 @@ const DataTable: Component<DataTableProps> = (props) => {
         headerName: field.name,
         width: field.width,
         editable: field.editable !== false && config().enableEditing,
-        cellEditor: getCellEditor(field),
-        cellEditorParams: getCellEditorParams(field),
-        cellRenderer: getCellRenderer(field),
         sortable: field.sortable !== false && config().enableSorting,
         filter: field.filterable !== false && config().enableFiltering,
         resizable: config().enableColumnResize,
         draggable: config().enableColumnReorder,
-        cellValidator: getCellValidator(field),
+        // cellValidator: getCellValidator(field),
+        ...fieldTypeMap[field.type]?.colDef?.(field)
       };
-
-      // 为公式字段添加特殊处理
-      if (field.type === 'formula') {
-        colDef.editable = false;
-        colDef.cellRenderer = (params: any) => {
-          try {
-            const formula = field.formula || '';
-            const result = evaluateFormula(formula, params.data);
-            return result;
-          } catch (error) {
-            return '公式错误';
-          }
-        };
-      }
 
       return colDef;
     });
-  };
-
-  // 获取单元格编辑器参数
-  const getCellEditorParams = (field: Field) => {
-    if (field.type === 'select' && field.options) {
-      return { values: field.options };
-    }
-    return {};
-  };
-
-  // 评估公式
-  const evaluateFormula = (formula: string, data: any) => {
-    try {
-      let processedFormula = formula;
-      Object.keys(data).forEach(key => {
-        const regex = new RegExp(`\\b${key}\\b`, 'g');
-        processedFormula = processedFormula.replace(regex, data[key] || 0);
-      });
-      return eval(processedFormula);
-    } catch (error) {
-      return '公式错误';
-    }
   };
 
   // 网格选项

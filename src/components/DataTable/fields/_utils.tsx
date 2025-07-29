@@ -1,8 +1,8 @@
 import { createRoot, type Component } from 'solid-js'
-import type { ICellRendererParams, ICellRendererComp } from 'ag-grid-community'
+import type { ICellRendererParams, ICellRendererComp, ICellEditorParams } from 'ag-grid-community'
 import { render } from 'solid-js/web'
 
-export function defineCellRenderer(Comp: Component<any>) {
+export function defineCellRenderer<T extends Record<string, any>>(Comp: Component<ICellRendererParams & T>) {
   return class CellRenderer implements ICellRendererComp {
     el!: HTMLElement
     clean!: Function
@@ -30,7 +30,7 @@ export function defineCellRenderer(Comp: Component<any>) {
  * @param Comp 编辑器组件
  * @returns ag-grid cellEditor 对象
  */
-export function defineCellEditor(Comp: Component<any>) {
+export function defineCellEditor<T extends Record<string, any>>(Comp: Component<ICellEditorParams & T>) {
   return function (params: any) {
     let value = params.value
     let committed = false

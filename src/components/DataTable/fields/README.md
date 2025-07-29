@@ -4,39 +4,37 @@
 
 ```tsx
 import { createSignal, onCleanup } from 'solid-js'
+import type { ColDef } from 'ag-grid-community';
 import { defineCellRenderer, defineCellEditor } from './_utils'
+import type { Field } from '../types'
 
-// 导出渲染器
-export const CellRenderer = defineCellRenderer(props => {
-  return <span>{props.value ?? ''}</span>
+export const colDef = (field: Field): Partial<ColDef> => ({
+  // 渲染器
+  cellRenderer: defineCellRenderer(props => {
+    return <span>{props.value ?? ''}</span>
+  }),
+  // 编辑器
+  cellEditor: defineCellEditor(props => {
+    const [val, setVal] = createSignal(props.value ?? '')
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        props.onCommit(val())
+      } else if (e.key === 'Escape') {
+        props.onCancel()
+      }
+    };
+
+    return (
+      <input
+        value={val()}
+        onInput={e => setVal(e.currentTarget.value)}
+        onBlur={() => props.onCommit(val())}
+        onKeyDown={handleKeyDown}
+        style={{ width: '100%' }}
+        autofocus
+      />
+    )
+  })
 })
-
-// 导出编辑器
-export const CellEditor = defineCellEditor(props => {
-  const [val, setVal] = createSignal(props.value ?? '')
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      props.onCommit(val())
-    } else if (e.key === 'Escape') {
-      props.onCancel()
-    }
-  };
-
-  return (
-    <input
-      value={val()}
-      onInput={e => setVal(e.currentTarget.value)}
-      onBlur={() => props.onCommit(val())}
-      onKeyDown={handleKeyDown}
-      style={{ width: '100%' }}
-      autofocus
-    />
-  )
-})
-
-// 导出校验器
-export function cellValidator(value) {
-  return true;
-}
 ```
