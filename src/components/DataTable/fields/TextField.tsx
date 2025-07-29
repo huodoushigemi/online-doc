@@ -21,7 +21,7 @@ export const colDef = (field: Field): Partial<ColDef> => ({
         value={val()}
         onInput={e => setVal(e.currentTarget.value)}
         onBlur={() => props.onCommit(val())}
-        onKeyDown={handleKeyDown}
+        on:keydown={handleKeyDown}
         style={{ width: '100%' }}
         autofocus
       />
