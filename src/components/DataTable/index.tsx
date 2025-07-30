@@ -10,6 +10,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import type { DataTableProps, Field, FieldType, TableRow, TableTheme, SelectionRange,TableConfig,ExportConfig } from './types';
 export * from './types'
 import './DataTable.scss';
+import { createMutable } from 'solid-js/store';
 
 // 自动导入 fields 目录下所有 *Field.tsx
 const modules = import.meta.glob('./fields/*Field.tsx', { eager: true });
@@ -26,7 +27,7 @@ for (const path in modules) {
 const DataTable: Component<DataTableProps> = (props) => {
   const [gridApi, setGridApi] = createSignal<GridApi | null>(null);
   const [columnApi, setColumnApi] = createSignal<ColumnApi | null>(null);
-  const [data, setData] = createSignal<TableRow[]>(props.data || []);
+  const [data, setData] = createSignal<TableRow[]>(createMutable(props.data || []));
   const [fields, setFields] = createSignal<Field[]>(props.fields || []);
   const [selectedRange, setSelectedRange] = createSignal<SelectionRange[]>([]);
   const [showFieldManager, setShowFieldManager] = createSignal(false);
@@ -54,32 +55,6 @@ const DataTable: Component<DataTableProps> = (props) => {
   };
 
   const config = () => ({ ...defaultConfig, ...props.config });
-
-  // 默认字段
-  const defaultFields: Field[] = [
-    { id: 'id', name: 'ID', type: 'number', width: 80, editable: false },
-    { id: 'name', name: '名称', type: 'text', width: 150, editable: true },
-    { id: 'value', name: '数值', type: 'number', width: 120, editable: true },
-    { id: 'date', name: '日期', type: 'date', width: 130, editable: true },
-    { id: 'status', name: '状态', type: 'select', options: ['活跃', '暂停', '完成'], width: 100, editable: true },
-  ];
-
-  // 默认数据
-  const defaultData: TableRow[] = [
-    { id: 1, name: '项目A', value: 100, date: '2024-01-15', status: '活跃' },
-    { id: 2, name: '项目B', value: 250, date: '2024-01-20', status: '暂停' },
-    { id: 3, name: '项目C', value: 75, date: '2024-01-25', status: '完成' },
-  ];
-
-  // 初始化数据
-  onMount(() => {
-    if (!props.data) {
-      setData(defaultData);
-    }
-    if (!props.fields) {
-      setFields(defaultFields);
-    }
-  });
 
   // 创建列定义
   const createColumnDefs = (): ColDef[] => {
@@ -122,12 +97,11 @@ const DataTable: Component<DataTableProps> = (props) => {
       setColumnApi(params.columnApi);
     },
     onCellEditingStopped: (event: CellEditingStoppedEvent) => {
-      const newData = [...data()];
-      const rowIndex = event.rowIndex;
-      if (rowIndex !== undefined && newData[rowIndex]) {
+      const newData = data();
+      const rowIndex = event.rowIndex!;
+      if (newData[rowIndex]) {
         const oldValue = newData[rowIndex][event.column.getColId()];
         newData[rowIndex] = { ...newData[rowIndex], [event.column.getColId()]: event.newValue };
-        setData(newData);
         props.onDataChange?.(newData);
         props.onCellEdit?.(rowIndex, event.column.getColId(), oldValue, event.newValue);
       }

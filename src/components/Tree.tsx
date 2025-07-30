@@ -71,6 +71,10 @@ export abstract class $Node {
     return this.children?.flatMap(e => [e, ...e.descendants]) || []
   }
 
+  contains(node: $Node) {
+    return node.path.includes(this)
+  }
+
   remove() {
     // this.
   }

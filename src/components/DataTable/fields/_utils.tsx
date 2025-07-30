@@ -44,11 +44,11 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
       this.props[1](params)
     }
     afterGuiAttached?(): void {
-      // this.el.parentElement?.querySelector('input,select,textarea')?.focus?.()
+      this.el.parentElement?.querySelector('input,select,textarea')?.focus?.()
     }
-    isPopup?(): boolean {
-      return false
-    }
+    // isPopup?(): boolean {
+    //   return false
+    // }
     getPopupPosition?(): 'over' | 'under' | undefined {
       return 'over'
     }

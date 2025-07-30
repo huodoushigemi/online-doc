@@ -1,5 +1,6 @@
 import { type Component, createSignal } from 'solid-js';
 import DataTable, { type Field, type FieldType } from './index';
+import { createMutable } from 'solid-js/store';
 
 const DataTableTest: Component = () => {
   const [testData, setTestData] = createSignal([
@@ -8,7 +9,7 @@ const DataTableTest: Component = () => {
     { id: 3, name: '测试项目3', price: 150, quantity: 8, date: '2024-01-25', status: '暂停' },
   ]);
 
-  const [testFields, setTestFields] = createSignal<Field[]>([
+  const testFields = createMutable<Field[]>([
     { id: 'id', name: 'ID', type: 'number', width: 80, editable: false },
     { id: 'name', name: '项目名称', type: 'text', width: 200, editable: true },
     { id: 'price', name: '单价', type: 'number', width: 100, editable: true, validation: { min: 0 } },
@@ -16,16 +17,11 @@ const DataTableTest: Component = () => {
     { id: 'total', name: '总价', type: 'formula', formula: 'price * quantity', width: 120, editable: false },
     { id: 'date', name: '日期', type: 'date', width: 130, editable: true },
     { id: 'status', name: '状态', type: 'select', options: ['进行中', '已完成', '暂停', '取消'], width: 100, editable: true },
-  ]);
+  ])
 
   const handleDataChange = (data: any[]) => {
     console.log('测试 - 数据变化:', data);
     setTestData(data);
-  };
-
-  const handleFieldsChange = (fields: Field[]) => {
-    console.log('测试 - 字段变化:', fields);
-    setTestFields(fields);
   };
 
   const handleCellEdit = (rowIndex: number, colId: string, oldValue: any, newValue: any) => {
@@ -46,10 +42,10 @@ const DataTableTest: Component = () => {
         <div style="background: white; border-radius: 8px; overflow: hidden; height: calc(100vh - 100px);">
           <DataTable
             data={testData()}
-            fields={testFields()}
+            fields={testFields}
             theme="grid"
             onDataChange={handleDataChange}
-            onFieldsChange={handleFieldsChange}
+            onFieldsChange={fields => testFields.splice(0, Infinity, ...fields)}
             onCellEdit={handleCellEdit}
             onSelectionChange={handleSelectionChange}
             config={{
