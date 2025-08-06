@@ -18,6 +18,7 @@ export const colDef = (field: Field): Partial<ColDef> => ({
     };
     return (
       <input
+        class='block h-full pl-4 outline-0 border-0'
         value={val()}
         onInput={e => setVal(e.currentTarget.value)}
         onBlur={() => props.onCommit(val())}

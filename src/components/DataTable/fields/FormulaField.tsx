@@ -32,12 +32,8 @@ export const colDef = (field: Field): Partial<ColDef> => ({
 // 评估公式
 const evaluateFormula = (formula: string, data: any) => {
   try {
-    let processedFormula = formula;
-    Object.keys(data).forEach(key => {
-      const regex = new RegExp(`\\b${key}\\b`, 'g');
-      processedFormula = processedFormula.replace(regex, data[key] || 0);
-    });
-    return eval(processedFormula);
+    const ctx = { data }
+    return (new Function(...Object.keys(ctx), `return ` + formula))(...Object.values(ctx))
   } catch (error) {
     return '公式错误'
   }

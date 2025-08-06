@@ -1,15 +1,16 @@
 import { createRoot, createSignal, type Component, type Signal } from 'solid-js'
 import type { ICellRendererParams, ICellRendererComp, ICellEditorParams, ICellEditorComp, AgPromise } from 'ag-grid-community'
-import { render } from 'solid-js/web'
 
 export function defineCellRenderer<T extends Record<string, any>>(Comp: Component<ICellRendererParams & T>) {
   return class CellRenderer implements ICellRendererComp {
     el!: HTMLElement
     dispose!: Function
+    props!: Signal<any>
 
     init(props: ICellRendererParams) {
       createRoot(dispose => {
-        this.el = (<Comp {...props} />) as unknown as HTMLElement
+        this.props = createSignal(props)
+        this.el = (<Comp {...this.props[0]()} />) as unknown as HTMLElement
         this.dispose = dispose
       })
     }
@@ -20,6 +21,7 @@ export function defineCellRenderer<T extends Record<string, any>>(Comp: Componen
       this.dispose()
     }
     refresh(params: ICellRendererParams<any, any, any>) {
+      this.props[1](params)
       return true
     }
   }
@@ -44,7 +46,7 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
       this.props[1](params)
     }
     afterGuiAttached?(): void {
-      this.el.parentElement?.querySelector('input,select,textarea')?.focus?.()
+      this.el.parentElement?.querySelector('input,select,textarea,[tabindex="0"]')?.focus?.()
     }
     // isPopup?(): boolean {
     //   return false

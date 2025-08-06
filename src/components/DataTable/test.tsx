@@ -14,9 +14,9 @@ const DataTableTest: Component = () => {
     { id: 'name', name: '项目名称', type: 'text', width: 200, editable: true },
     { id: 'price', name: '单价', type: 'number', width: 100, editable: true, validation: { min: 0 } },
     { id: 'quantity', name: '数量', type: 'number', width: 100, editable: true, validation: { min: 1 } },
-    { id: 'total', name: '总价', type: 'formula', formula: 'price * quantity', width: 120, editable: false },
+    { id: 'total', name: '总价', type: 'formula', formula: 'data.price * data.quantity', width: 120, editable: false },
     { id: 'date', name: '日期', type: 'date', width: 130, editable: true },
-    { id: 'status', name: '状态', type: 'select', options: ['进行中', '已完成', '暂停', '取消'], width: 100, editable: true },
+    { id: 'status', name: '状态', type: 'select', options: [{ value: '进行中', color: '#409EFF' }, { value: '已完成', color: '#67C23A' }, { value: '暂停', color: '#E6A23C' }, { value: '取消', color: '#909399' }], width: 100, editable: true },
   ])
 
   const handleDataChange = (data: any[]) => {
