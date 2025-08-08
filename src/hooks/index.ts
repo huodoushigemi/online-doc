@@ -1,13 +1,10 @@
-import { createMutationObserver } from '@solid-primitives/mutation-observer'
 import { createEventListener } from '@solid-primitives/event-listener'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type Many, type MaybeAccessor } from '@solid-primitives/utils'
-import { createComputed, createEffect, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
-import { createMutable } from 'solid-js/store'
+import { createComputed, createEffect, createMemo, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
 import { makePersisted, storageSync } from '@solid-primitives/storage'
-import { createPrefersDark } from '@solid-primitives/media'
-import { log, unFn } from '../utils'
 import { isFunction, isPromise } from 'es-toolkit'
+import { castArray } from 'es-toolkit/compat'
 
 interface UseDragOptions {
   start?(
@@ -114,4 +111,11 @@ export function useMouseDown(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
   createEventListener(el, 'pointerdown', () => setDown(true))
   createEventListener(document.body, 'pointerup', () => setDown(false))
   return down
+}
+
+export function useClicked(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
+  const [clicked, setClicked] = createSignal(false)
+  const els = () => castArray(access(el))
+  createEventListener(() => els().map(e => e?.getRootNode()), 'click', e => setClicked(els().some(el => el?.contains(e.target))))
+  return clicked
 }

@@ -1,4 +1,5 @@
 import { createMemo, createEffect, createSignal, onCleanup, For, createRenderEffect, createComputed, splitProps } from "solid-js"
+import type { MemoOptions } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { inRange, pickBy } from "es-toolkit"
 import { isEmpty } from "es-toolkit/compat"
@@ -16,9 +17,10 @@ import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
 import { useDark, useMemoAsync } from "./hooks"
 import { VDir } from './hooks/useDir'
 import { BubbleMenu, FloatingMenu, LinkPane } from './Floating'
-import { chooseImage, file2base64, log } from './utils'
+import { chooseFile, chooseImage, file2base64, log } from './utils'
 import { Menu } from './components/Menu'
 
+// import '@unocss/reset/tailwind.css'
 import 'virtual:uno.css'
 import './index.scss'
 import './tiptap.scss'
@@ -33,8 +35,9 @@ import { TableKit } from './extensions/Table'
 import { Iframe } from './extensions/Iframe'
 import { FormKit } from './extensions/Form'
 import { ImageKit } from './extensions/Image'
+import { CommentKit } from './extensions/Comments'
+import FileKit from "./extensions/File"
 import { menus, mounted } from "./context"
-import type { MemoOptions } from "solid-js"
 
 export function useEditorTransaction<T>(
   instance: MaybeAccessor<Editor>,
@@ -119,6 +122,8 @@ function tiptap(props?: Partial<EditorOptions>, isDark?: boolean) {
       ColumnsKit,
       FormKit,
       Iframe,
+      CommentKit,
+      FileKit,
       ListKit.configure({
         bulletList: false,
         listItem: false,
@@ -212,7 +217,7 @@ export function TiptapEditor(_: { editor?: Editor }) {
     { label: '多列', kw: 'columns', icon: () => <ILucideColumns2 />, cb: () => chain().insertColumns().run() },
     { label: '表格', kw: 'table', icon: () => <ILucideTable />, cb: () => chain().insertTable().run() },
     { label: '图片', kw: 'image', icon: () => <ILucideImage />, cb: () => uploadImage() },
-    { label: '文件', kw: 'file', 'attr:disabled': true, icon: () => <ILucideUpload />, cb: () => alert('敬请期待……') },
+    { label: '文件', kw: 'file', 'attr:disabled': true, icon: () => <ILucideUpload />, cb: () => chooseFile().then(src => chain().insertFile({ file: src }).run()) },
     { label: '代码块', kw: 'code', icon: () => <ILucideCode />, cb: () => chain().toggleCodeBlock().run() },
     { label: '引用', kw: 'blockquote', icon: () => <ILucideQuote />, cb: () => chain().toggleBlockquote().run() },
     { label: '分割线', kw: 'hr', icon: () => <ILucideDivide />, cb: () => chain().setHorizontalRule().run() },

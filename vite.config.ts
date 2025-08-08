@@ -29,6 +29,7 @@ export default defineConfig({
       shortcuts: {
         aic: 'items-center',
       },
+      theme: (await import('daisyui/functions/variables.js')).default
     }),
     {
       enforce: 'post',

@@ -126,3 +126,11 @@ p.is-empty::before {
     @apply bg-gray/20;
   }
 }
+
+[data-type="comment"] {
+  @apply b-b-(2px dashed yellow-500);
+}
+
+[data-type="file"].has-focus {
+  @apply outline-(2 solid blue);
+}

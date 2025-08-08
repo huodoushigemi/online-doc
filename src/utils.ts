@@ -8,11 +8,11 @@ export function file2base64(file: File) {
   })
 }
 
-export function chooseFile() {
+export function chooseFile(opts?) {
   return new Promise<File>((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = 'image/*'
+    input.accept = opts?.accept
     input.onchange = () => {
       if (input.files && input.files.length > 0) {
         resolve(input.files[0])
@@ -24,7 +24,7 @@ export function chooseFile() {
 }
 
 export function chooseImage() {
-  return chooseFile()
+  return chooseFile({ accept: 'image/*' })
 }
 
 export async function html2docx(content: string) {

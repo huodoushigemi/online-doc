@@ -23,7 +23,7 @@ const ColorPane = ({ attrs }) => {
 export const menus = (editor: Editor) => {
   const exec = (cb: (chain: ChainedCommands) => ChainedCommands) => cb(editor.chain()).focus().run()
 
-  const ms = Object.values(import.meta.glob('./extensions/*/', { import: 'menus', eager: true })).filter(e => e)
+  const ms = Object.values(import.meta.glob('./extensions/*.tsx', { import: 'menus', eager: true })).filter(e => e)
 
   const aaa = ms.map(e => unFn(e, editor))
 
@@ -59,6 +59,6 @@ export const menus = (editor: Editor) => {
 
 
 export const mounted = async (editor: Editor) => {
-  const cbs = await Promise.all(Object.values(import.meta.glob('./extensions/*/', { import: 'mounted' }).map(e => e())))
+  const cbs = await Promise.all(Object.values(import.meta.glob('./extensions/*.tsx', { import: 'mounted' }).map(e => e())))
   cbs.forEach(e => e?.(editor))
 }
