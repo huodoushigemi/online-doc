@@ -13,7 +13,8 @@ export function createNodeView(Comp, options?: { syncAttrs?: string[] | Record<s
         const attrs = options?.syncAttrs!
         const map = Array.isArray(attrs) ? Object.fromEntries(attrs.map(e => [e, {}])) : attrs
         const ks = Array.isArray(attrs) ? options?.syncAttrs : Object.keys(attrs)
-        const sync = () => ks.forEach(k => props.node.attrs[k] = (v => map[k]?.parse?.(v) ?? v ?? props.node.attrs[k])(el.getAttribute(k)))
+        const parse = (fn, v) => v && fn == true ? JSON.parse(v) : typeof fn == 'function' ? fn(v) : v
+        const sync = () => ks.forEach(k => props.node.attrs[k] = parse(map[k]?.parse, el.getAttribute(k)))
         onMount(sync)
         createMutationObserver(()  => el, { attributes: true }, () => sync())
       }

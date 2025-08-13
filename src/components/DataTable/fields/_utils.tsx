@@ -1,5 +1,5 @@
 import { createRoot, createSignal, type Component, type Signal } from 'solid-js'
-import type { ICellRendererParams, ICellRendererComp, ICellEditorParams, ICellEditorComp, AgPromise } from 'ag-grid-community'
+import type { ICellRendererParams, ICellRendererComp, ICellEditorParams, ICellEditorComp, AgPromise, IHeaderComp, IHeaderParams } from 'ag-grid-community'
 
 export function defineCellRenderer<T extends Record<string, any>>(Comp: Component<ICellRendererParams & T>) {
   return class CellRenderer implements ICellRendererComp {
@@ -94,6 +94,32 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
         this.el = (<Comp {...this.props[0]()} onCommit={onCommit} onCancel={onCancel} />) as unknown as HTMLElement
         this.dispose = dispose
       })
+    }
+  }
+}
+
+export function defineHeaderRenderer<T extends Record<string, any>>(Comp: Component<IHeaderParams & T>) {
+  return class HeaderRenderer implements IHeaderComp {
+    el!: HTMLElement
+    dispose!: Function
+    props!: Signal<any>
+
+    init?(params: IHeaderParams<any, any>): AgPromise<void> | void {
+      createRoot(dispose => {
+        this.props = createSignal(params)
+        this.el = (<Comp {...this.props[0]()} />) as unknown as HTMLElement
+        this.dispose = dispose
+      })
+    }
+    getGui(): HTMLElement {
+      return this.el
+    }
+    destroy?(): void {
+      this.dispose()
+    }
+    refresh(params: IHeaderParams) {
+      this.props[1](params)
+      return true
     }
   }
 }

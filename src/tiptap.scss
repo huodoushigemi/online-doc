@@ -131,6 +131,10 @@ p.is-empty::before {
   @apply b-b-(2px dashed yellow-500);
 }
 
-[data-type="file"].has-focus {
-  @apply outline-(2 solid blue);
+[data-type="file"] {
+  @apply mx-1 px-1 py-.5 rd-1 outline-(1px solid blue);
+  
+  &.has-focus {
+    @apply outline-2
+  }
 }

@@ -15,14 +15,21 @@ declare module '@tiptap/core' {
 
 const PROPS = {
   src: { default: '', parseHTML: el => el.getAttribute('src') || '' },
-  file: { default: '', parse: str => JSON.parse(str), reflect: (file: File) => JSON.stringify({ name: file.name, size: file.size, type: file.type }) },
+  file: { default: '', parse: true },
   'data-type': { default: 'file' }
 }
 
-type Props = { [K in keyof typeof PROPS]?: string }
+type Props = { [K in keyof typeof PROPS]?: any }
 
 function MyFile(props: Props & { _nvrp: NodeViewRendererProps }) {
-  return <span {...props} file={PROPS.file.reflect(props.file)}>{props.file?.name ?? props.src}</span>
+  return (
+    <span
+      {...props}
+      file={(file => JSON.stringify({ name: file.name, size: file.size, type: file.type }))(props.file || {} as File)}
+    >
+      📄{props.file?.name ?? props.src}
+    </span>
+  )
 }
 
 export const FileKit = Node.create({
@@ -32,7 +39,7 @@ export const FileKit = Node.create({
   parseHTML: () => [{ tag: '[data-type="file"]' }],
   addAttributes: () => PROPS,
   renderHTML: ({ node }) => ['span', { ...node.attrs }, 0],
-  addNodeView: () => createNodeView(MyFile, { syncAttrs: Object.keys(PROPS) }),
+  addNodeView: () => createNodeView(MyFile, { syncAttrs: PROPS }),
   addCommands() {
     return {
       insertFile: (props) => ({ editor, tr, chain }) => {

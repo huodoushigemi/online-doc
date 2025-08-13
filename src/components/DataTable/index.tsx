@@ -11,6 +11,9 @@ import type { DataTableProps, Field, FieldType, TableRow, TableTheme, SelectionR
 export * from './types'
 import './DataTable.scss';
 import { createMutable } from 'solid-js/store';
+import { defineHeaderRenderer } from './fields/_utils';
+import { Popover } from '../Popover';
+import { Menu } from '../Menu';
 
 // 自动导入 fields 目录下所有 *Field.tsx
 const modules = import.meta.glob('./fields/*Field.tsx', { eager: true });
@@ -56,9 +59,22 @@ const DataTable: Component<DataTableProps> = (props) => {
 
   const config = () => ({ ...defaultConfig, ...props.config });
 
+  const actionCol: ColDef = {
+    headerComponent: defineHeaderRenderer(props => {
+      return <Popover
+        trigger='click'
+        reference={<div>+</div>}
+        floating={() => <Menu items={[
+          { label: '文本' },
+          { label: '数字' },
+        ]} />}
+      />
+    })
+  }
+
   // 创建列定义
   const createColumnDefs = (): ColDef[] => {
-    return fields().map(field => {
+    const arr = fields().map(field => {
       const colDef: ColDef = {
         field: field.id,
         headerName: field.name,
@@ -74,6 +90,10 @@ const DataTable: Component<DataTableProps> = (props) => {
 
       return colDef;
     });
+
+    arr.push(actionCol)
+
+    return arr
   };
 
   // 网格选项
