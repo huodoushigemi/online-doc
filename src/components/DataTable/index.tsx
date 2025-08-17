@@ -60,10 +60,14 @@ const DataTable: Component<DataTableProps> = (props) => {
   const config = () => ({ ...defaultConfig, ...props.config });
 
   const actionCol: ColDef = {
+    width: 40,
+    headerClass: 'p-0!',
     headerComponent: defineHeaderRenderer(props => {
       return <Popover
         trigger='click'
-        reference={<div>+</div>}
+        portal={document.body}
+        placement='bottom-start'
+        reference={<div class='flex-1 flex justify-center items-center self-stretch cursor-pointer'>+</div>}
         floating={() => <Menu items={[
           { label: '文本' },
           { label: '数字' },
