@@ -7,7 +7,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import 'ag-grid-community/styles/ag-theme-balham.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import type { DataTableProps, Field, FieldType, TableRow, TableTheme, SelectionRange,TableConfig,ExportConfig } from './types';
+import type { DataTableProps, Field, TableRow, TableTheme, SelectionRange,TableConfig,ExportConfig } from './types';
 export * from './types'
 import './DataTable.scss';
 import { createMutable } from 'solid-js/store';
@@ -61,16 +61,22 @@ const DataTable: Component<DataTableProps> = (props) => {
 
   const actionCol: ColDef = {
     width: 40,
+    resizable: false,
     headerClass: 'p-0!',
     headerComponent: defineHeaderRenderer(props => {
       return <Popover
         trigger='click'
         portal={document.body}
         placement='bottom-start'
-        reference={<div class='flex-1 flex justify-center items-center self-stretch cursor-pointer'>+</div>}
+        reference={<div class='flex-1 flex justify-center items-center self-stretch text-[1.2em]'><ILucideCirclePlus /></div>}
         floating={() => <Menu items={[
-          { label: '文本' },
-          { label: '数字' },
+          ...Object.values(modules).sort((a, b) => (a.field.sort || 0) - (b.field.sort || 0)).map(e => ({
+            label: e.field.name,
+            icon: e.field.icon,
+            cb: () => {
+              // 添加新字段
+            }
+          }))
         ]} />}
       />
     })
@@ -153,17 +159,7 @@ const DataTable: Component<DataTableProps> = (props) => {
     if (newField().name && newField().type) {
       const field: Field = {
         id: `field_${Date.now()}`,
-        name: newField().name!,
-        type: newField().type!,
-        options: newField().options,
-        formula: newField().formula,
-        width: 120,
-        editable: newField().editable !== false,
-        sortable: newField().sortable !== false,
-        filterable: newField().filterable !== false,
-        required: newField().required,
-        defaultValue: newField().defaultValue,
-        validation: newField().validation,
+        ...newField() as any
       };
 
       const newFields = [...fields(), field];
@@ -259,15 +255,12 @@ const DataTable: Component<DataTableProps> = (props) => {
           <button class="btn btn-primary btn-sm" onClick={addRow}>
             添加行
           </button>
-          <button 
+          <button
             class="btn btn-error btn-sm" 
             onClick={deleteSelectedRows}
             disabled={selectedRange().length === 0}
           >
             删除选中
-          </button>
-          <button class="btn btn-secondary btn-sm" onClick={() => setShowFieldManager(true)}>
-            字段管理
           </button>
         </div>
 
@@ -290,108 +283,6 @@ const DataTable: Component<DataTableProps> = (props) => {
           </Show>
         </div>
       </div>
-
-      {/* 字段管理器模态框 */}
-      <Show when={showFieldManager()}>
-        <div class="modal modal-open">
-          <div class="modal-box">
-            <h3 class="font-bold text-lg">字段管理</h3>
-            
-            <div class="form-control w-full mt-4">
-              <label class="label">
-                <span class="label-text">字段名称</span>
-              </label>
-              <input 
-                type="text" 
-                class="input input-bordered" 
-                value={newField().name || ''}
-                onChange={(e) => setNewField({ ...newField(), name: e.target.value })}
-                placeholder="输入字段名称"
-              />
-            </div>
-
-            <div class="form-control w-full mt-2">
-              <label class="label">
-                <span class="label-text">字段类型</span>
-              </label>
-              <select 
-                class="select select-bordered"
-                value={newField().type || ''}
-                onChange={(e) => setNewField({ ...newField(), type: e.target.value as FieldType })}
-              >
-                <option value="">选择类型</option>
-                <option value="text">文本</option>
-                <option value="number">数字</option>
-                <option value="date">日期</option>
-                <option value="select">选项</option>
-                <option value="formula">公式</option>
-              </select>
-            </div>
-
-            <Show when={newField().type === 'select'}>
-              <div class="form-control w-full mt-2">
-                <label class="label">
-                  <span class="label-text">选项（用逗号分隔）</span>
-                </label>
-                <input 
-                  type="text" 
-                  class="input input-bordered" 
-                  value={newField().options?.join(', ') || ''}
-                  onChange={(e) => setNewField({ 
-                    ...newField(), 
-                    options: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                  })}
-                  placeholder="选项1, 选项2, 选项3"
-                />
-              </div>
-            </Show>
-
-            <Show when={newField().type === 'formula'}>
-              <div class="form-control w-full mt-2">
-                <label class="label">
-                  <span class="label-text">公式</span>
-                </label>
-                <input 
-                  type="text" 
-                  class="input input-bordered" 
-                  value={newField().formula || ''}
-                  onChange={(e) => setNewField({ ...newField(), formula: e.target.value })}
-                  placeholder="例如：value * 1.1"
-                />
-              </div>
-            </Show>
-
-            <div class="form-control w-full mt-2">
-              <label class="label cursor-pointer">
-                <span class="label-text">可编辑</span>
-                <input 
-                  type="checkbox" 
-                  class="checkbox"
-                  checked={newField().editable !== false}
-                  onChange={(e) => setNewField({ ...newField(), editable: e.target.checked })}
-                />
-              </label>
-            </div>
-
-            <div class="form-control w-full mt-2">
-              <label class="label cursor-pointer">
-                <span class="label-text">必填</span>
-                <input 
-                  type="checkbox" 
-                  class="checkbox"
-                  checked={newField().required || false}
-                  onChange={(e) => setNewField({ ...newField(), required: e.target.checked })}
-                />
-              </label>
-            </div>
-
-            <div class="modal-action">
-              <button class="btn btn-primary" onClick={addField}>添加字段</button>
-              <button class="btn" onClick={() => setShowFieldManager(false)}>取消</button>
-            </div>
-          </div>
-        </div>
-      </Show>
 
       {/* 字段列表 */}
       <div class="fields-panel">

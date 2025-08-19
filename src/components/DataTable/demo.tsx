@@ -1,7 +1,7 @@
 import { createSignal } from 'solid-js';
 import type { Component } from 'solid-js'
 import DataTable from './index';
-import type { Field, FieldType } from './index';
+import type { Field } from './index';
 
 const DataTableDemo: Component = () => {
   const [currentTheme, setCurrentTheme] = createSignal<'grid' | 'line' | 'compact'>('grid');

@@ -6,6 +6,12 @@ import { isFunction, isPlainObject, isPromise, isString } from 'es-toolkit';
 import { useMemoAsync } from '../../../hooks';
 import { combineProps } from '@solid-primitives/props';
 
+export const field = {
+  name: '选择框',
+  icon: () => <ILucideTextSelect />,
+  sort: 2
+}
+
 export const colDef = (field: Field): Partial<ColDef> => ({
   cellRenderer: defineCellRenderer(props => {
     const options = resolveOptions(field.options);

@@ -1,5 +1,5 @@
 import { type Component, createSignal } from 'solid-js';
-import DataTable, { type Field, type FieldType } from './index';
+import DataTable, { type Field } from './index';
 import { createMutable } from 'solid-js/store';
 
 const DataTableTest: Component = () => {

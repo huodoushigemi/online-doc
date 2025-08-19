@@ -1,11 +1,8 @@
-// 字段类型定义
-export type FieldType = 'text' | 'number' | 'date' | 'select' | 'formula';
-
 // 字段接口
 export interface Field {
   id: string;
   name: string;
-  type: FieldType;
+  type: string;
   options?: string[] | { label?: string; value: string }[] // 用于 select 类型
   formula?: string; // 用于 formula 类型
   width?: number;

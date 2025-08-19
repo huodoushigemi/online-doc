@@ -7,8 +7,8 @@ import DataTableTest from './components/DataTable/test.tsx'
 
 const root = document.getElementById('root')
 
-render(() => <App />, root!)
-// render(() => <DataTableTest />, root!)
+// render(() => <App />, root!)
+render(() => <DataTableTest />, root!)
 
 const qs = Object.fromEntries(new URLSearchParams(location.search).entries())
 

@@ -3,6 +3,12 @@ import type { ColDef } from 'ag-grid-community';
 import { defineCellRenderer, defineCellEditor } from './_utils';
 import type { Field } from '../types';
 
+export const field = {
+  name: '数字',
+  icon: () => <ILucideHash />,
+  sort: 1
+}
+
 export const colDef = (field: Field): Partial<ColDef> => ({
   cellRenderer: defineCellRenderer(props => {
     return <span>{props.value != null ? props.value : ''}</span>;

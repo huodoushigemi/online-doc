@@ -3,6 +3,12 @@ import type { ColDef } from 'ag-grid-community';
 import { defineCellRenderer, defineCellEditor } from './_utils';
 import type { Field } from '../types';
 
+export const field = {
+  name: '日期',
+  icon: () => <ILucideCalendar />,
+  sort: 3
+}
+
 export const colDef = (field: Field): Partial<ColDef> => ({
   cellRenderer: defineCellRenderer(props => {
     return <span>{props.value ?? ''}</span>;
@@ -34,4 +40,4 @@ export const colDef = (field: Field): Partial<ColDef> => ({
 export function cellValidator(value: any) {
   if (!value) return true;
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
-} 
+}

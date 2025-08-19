@@ -3,6 +3,12 @@ import type { ColDef } from 'ag-grid-community';
 import { defineCellRenderer, defineCellEditor } from './_utils';
 import type { Field } from '../types'
 
+export const field = {
+  name: '文本',
+  icon: () => <ISolarTextLinear />,
+  sort: 0
+}
+
 export const colDef = (field: Field): Partial<ColDef> => ({
   cellRenderer: defineCellRenderer(props => {
     return <span>{props.value ?? ''}</span>;
@@ -32,4 +38,9 @@ export const colDef = (field: Field): Partial<ColDef> => ({
 
 export function cellValidator(value: any) {
   return true;
-} 
+}
+
+export const props = (field: Field) => [
+  { lp: 'default-value' },
+  { lp: 'required', displayValue: false }
+]

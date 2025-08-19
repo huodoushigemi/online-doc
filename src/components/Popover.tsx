@@ -9,7 +9,11 @@ export function Popover(attrs: FloatingProps) {
   const [_, props] = splitProps(attrs, ['reference', 'floating'])
   
   const show = (attrs.trigger == 'click' ? useClicked : useHover)(() => [reference(), floating()].filter(e => e))
-  const show2 = useMemoAsync(() => show() ? delay(100).then(() => true) : delay(200).then(() => false))
+  const show2 = useMemoAsync(() => (
+    attrs.trigger == 'click'
+      ? show()
+      : show() ? delay(100).then(() => true) : delay(200).then(() => false)
+  ))
 
   const reference = children(() => attrs.reference as HTMLElement)
   const floating = children(() => show2() ? attrs.floating as HTMLElement : void 0)
