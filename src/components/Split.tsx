@@ -12,7 +12,7 @@ type SplitProps = {
   both?: boolean
 }
 
-export const Split = (props: SplitProps & { children?: JSXElement[] }) => {
+export const Split = (props: SplitProps & { children?: JSXElement }) => {
   let el!: HTMLElement
   const child = children(() => props.children)
 

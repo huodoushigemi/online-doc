@@ -1,6 +1,7 @@
 import { createSignal, For, Index, onCleanup } from 'solid-js'
 import { render } from 'solid-js/web'
-import { Editor, findParentNode, findParentNodeClosestToPos, NodePos, NodeView, type NodeViewRenderer } from '@tiptap/core'
+import { Editor, findParentNodeClosestToPos, NodePos, type NodeViewRenderer } from '@tiptap/core'
+import { Node } from 'prosemirror-model'
 import { createEffect, createMemo, useTransition } from 'solid-js'
 import { chunk, delay, isEqual, xor } from 'es-toolkit'
 import { getPos, useActive, useEditorTransaction } from '../Editor'
@@ -49,7 +50,7 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
       <Floating
         reference={this.table}
         floating={() => (
-          <Split class='absolute flex h-2' both handle={i => <Dot i={i} x onAdd={() => addColumn(i)} />}>
+          <Split class='absolute flex h-3' both handle={i => <Dot i={i} x onAdd={() => addColumn(i)} />}>
             <Index each={widths()}>
               {(v, i) => <div class='cell-handle' style={`width: ${v()}px;`} onClick={() => selectCol(i)}></div>}
             </Index>
@@ -63,7 +64,7 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
       <Floating
         reference={this.table}
         floating={() => (
-          <Split class='absolute flex flex-col w-2' dir='y' both handle={i => <Dot i={i} onAdd={() => addRow(i)} />}>
+          <Split class='absolute flex flex-col w-3' dir='y' both handle={i => <Dot i={i} onAdd={() => addRow(i)} />}>
             <Index each={heights()}>
               {(v, i) => <div class='cell-handle' style={`height: ${v()}px;`} onClick={() => selectRow(i)}></div>}
             </Index>
@@ -114,6 +115,21 @@ class View extends TableView implements ReturnType<NodeViewRenderer> {
         const pos = getPos(editor, that.node) + table[i - 1][0] + 1
         editor.chain().focus(pos).addRowAfter().run()
       }
+    }
+
+    // fix: cell equal
+    ;(list => {
+      if (list.length <= 1) return
+      if (list[list.length - 1].children[0] != list[list.length - 2].children[0]) return
+      cloneAndReplaceNode(that.node)
+    })(that.node.children)
+
+    function cloneAndReplaceNode(node: Node) {
+      const from = getPos(editor, node)
+      editor.chain()
+        .deleteRange({ from, to: from + node.nodeSize })
+        .insertContentAt(from, editor.schema.nodeFromJSON(that.node.toJSON()))
+        .run()
     }
   }
 }
