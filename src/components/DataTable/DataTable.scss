@@ -404,3 +404,8 @@
   padding: 0 !important;
   height: 100% !important;
 }
+
+
+.ag-layout-normal, .ag-layout-auto-height {
+  width: unset !important;
+}

@@ -1,3 +1,5 @@
+import type { CellRange } from "ag-grid-community"
+
 // 字段接口
 export interface Field {
   id: string;

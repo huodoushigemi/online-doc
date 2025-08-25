@@ -4,21 +4,18 @@ import type { ICellRendererParams, ICellRendererComp, ICellEditorParams, ICellEd
 export function defineCellRenderer<T extends Record<string, any>>(Comp: Component<ICellRendererParams & T>) {
   return class CellRenderer implements ICellRendererComp {
     el!: HTMLElement
-    dispose!: Function
     props!: Signal<any>
 
     init(props: ICellRendererParams) {
-      createRoot(dispose => {
+      createRoot(destroy => {
         this.props = createSignal(props)
         this.el = (<Comp {...this.props[0]()} />) as unknown as HTMLElement
-        this.dispose = dispose
+        // @ts-ignore
+        this.destroy = destroy
       })
     }
     getGui(): HTMLElement {
       return this.el
-    }
-    destroy?(): void {
-      this.dispose()
     }
     refresh(params: ICellRendererParams<any, any, any>) {
       this.props[1](params)
@@ -35,7 +32,6 @@ export function defineCellRenderer<T extends Record<string, any>>(Comp: Componen
 export function defineCellEditor<T extends Record<string, any>>(Comp: Component<ICellEditorParams & T>) {
   return class CellEditor implements ICellEditorComp {
     el!: HTMLElement
-    dispose!: Function
     props!: Signal<any>
     value: any
 
@@ -75,13 +71,12 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
     getGui(): HTMLElement {
       return this.el
     }
-    destroy?(): void {
-      this.dispose?.()
-    }
     init?(params: ICellEditorParams<any, any, any>): AgPromise<void> | void {
-      createRoot(dispose => {
+      createRoot(destroy => {
         this.props = createSignal(params)
+
         this.value = params.value
+        const v = (params.cellStartedEdit && ['Backspace', 'Delete'].includes(params.eventKey!) ? null : params.eventKey) ?? params.value
 
         const onCommit = (v: any) => {
           this.value = v
@@ -91,8 +86,9 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
           params.stopEditing()
         }
 
-        this.el = (<Comp {...this.props[0]()} onCommit={onCommit} onCancel={onCancel} />) as unknown as HTMLElement
-        this.dispose = dispose
+        this.el = (<Comp {...this.props[0]()} value={v} onCommit={onCommit} onCancel={onCancel} />) as unknown as HTMLElement
+        // @ts-ignore
+        this.destroy = destroy
       })
     }
   }
@@ -101,21 +97,18 @@ export function defineCellEditor<T extends Record<string, any>>(Comp: Component<
 export function defineHeaderRenderer<T extends Record<string, any>>(Comp: Component<IHeaderParams & T>) {
   return class HeaderRenderer implements IHeaderComp {
     el!: HTMLElement
-    dispose!: Function
     props!: Signal<any>
 
     init?(params: IHeaderParams<any, any>): AgPromise<void> | void {
-      createRoot(dispose => {
+      createRoot(destroy => {
         this.props = createSignal(params)
         this.el = (<Comp {...this.props[0]()} />) as unknown as HTMLElement
-        this.dispose = dispose
+        // @ts-ignore
+        this.destroy = destroy
       })
     }
     getGui(): HTMLElement {
       return this.el
-    }
-    destroy?(): void {
-      this.dispose()
     }
     refresh(params: IHeaderParams) {
       this.props[1](params)

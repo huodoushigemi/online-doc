@@ -1,8 +1,8 @@
-import { createEffect, createMemo, createSignal, For } from 'solid-js';
+import { createMemo, createSignal, For } from 'solid-js';
 import type { ColDef } from 'ag-grid-community';
 import { defineCellRenderer, defineCellEditor } from './_utils';
 import type { Field } from '../types'
-import { isFunction, isPlainObject, isPromise, isString } from 'es-toolkit';
+import { isFunction, isPlainObject, isPromise } from 'es-toolkit';
 import { useMemoAsync } from '../../../hooks';
 import { combineProps } from '@solid-primitives/props';
 
@@ -13,6 +13,7 @@ export const field = {
 }
 
 export const colDef = (field: Field): Partial<ColDef> => ({
+  singleClickEdit: true,
   cellRenderer: defineCellRenderer(props => {
     const options = resolveOptions(field.options);
     return <Label value={props.value} options={options} />

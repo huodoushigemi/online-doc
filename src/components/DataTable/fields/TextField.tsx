@@ -33,7 +33,10 @@ export const colDef = (field: Field): Partial<ColDef> => ({
         autofocus
       />
     );
-  })
+  }),
+  cellEditorParams: {
+    cellStartedEdit: true
+  },
 });
 
 export function cellValidator(value: any) {
