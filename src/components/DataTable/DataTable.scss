@@ -409,3 +409,59 @@
 .ag-layout-normal, .ag-layout-auto-height {
   width: unset !important;
 }
+
+
+.data-table {
+  @apply h-[100px] b-1 overflow-auto border-collapse;
+
+  & > * > tr {
+    & > td, & > th {
+      @apply px-2 lh-[28px];
+      text-align: inherit;
+    }
+  }
+}
+
+.range-selected {
+  @apply relative;
+  &::before {
+    @apply content-[''] absolute inset-0 bg-blue/20 b-(0px solid blue);
+  }
+
+  &-l { @apply before:b-l-(2px) }
+  &-r { @apply before:b-r-(2px) }
+  &-t { @apply before:b-t-(2px) }
+  &-b { @apply before:b-b-(2px) }
+}
+
+.row-range-highlight, .col-range-highlight {
+  @apply relative;
+  &::before {
+    @apply content-[''] absolute inset-0 bg-gray/25;
+  }
+}
+
+.fixed-left, .fixed-right {
+  @apply sticky bg-#fff;
+}
+
+.fixed-left::after {
+  content: '';
+  @apply absolute top-0 left-full w-[10px] h-full;
+  box-shadow: inset 10px 0 10px -10px rgba(0, 0, 0, .15);
+}
+
+.fixed-right::after {
+  content: '';
+  @apply absolute top-0 right-full w-[10px] h-full;
+  box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, .15);
+}
+
+.copied .range-selected {
+  &::before { border-style: dashed; }
+}
+
+body {
+  height: 200vh;
+  width: 200vw;
+}

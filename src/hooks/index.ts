@@ -1,10 +1,12 @@
 import { createEventListener } from '@solid-primitives/event-listener'
 import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type Many, type MaybeAccessor } from '@solid-primitives/utils'
-import { createComputed, createEffect, createMemo, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
+import { $PROXY, createComputed, createEffect, createMemo, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
 import { makePersisted, storageSync } from '@solid-primitives/storage'
 import { isFunction, isPromise } from 'es-toolkit'
 import { castArray } from 'es-toolkit/compat'
+import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { log, unFn } from '../utils'
 
 interface UseDragOptions {
   start?(
@@ -23,7 +25,7 @@ export function usePointerDrag(el: MaybeAccessor<HTMLElement | undefined>, optio
     passive: false,
     onDown(e) {
       e.preventDefault()
-      e.stopPropagation()
+      // e.stopPropagation()
       const [sx, sy] = [e.x, e.y]
 
       let move: MoveCB | void
@@ -99,6 +101,28 @@ export function useSignle2<T>(v: T | (() => T), opt?: { before?: (v: T) => Promi
   return [val, state[1]] as Signal<T>
 }
 
+const $MEMO = Symbol()
+
+type Reactive<T extends object> = { [K in keyof T]: T[K] extends () => infer V ? V : T[K] }
+export function toReactive<T extends object>(fn: (() => T) | T): Reactive<T> {
+  const v = () => unFn(fn)
+  return new Proxy(Object.create(null), {
+    get: (o, k, r) => k == $PROXY ? r : (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
+    // get: (o, k, r) => k == $PROXY ? r : unFn(v()[k]),
+    defineProperty: (o, k, attributes) => Reflect.defineProperty(v(), k, attributes),
+    getPrototypeOf: () => Reflect.getPrototypeOf(v()),
+    has: (o, p) => p == $PROXY || p in v(),
+    ownKeys: (o) => Object.keys(v()),
+    getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+  })
+}
+
+export function useMemo<T>(fn: () => T) {
+  const ret = createMemo(fn)
+  ret[$MEMO] = 1
+  return ret
+}
+
 export function useHover(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
   const [hover, setHover] = createSignal(false)
   createEventListener(el, 'pointerenter', () => setHover(true))
@@ -118,4 +142,10 @@ export function useClicked(el: MaybeAccessor<Many<HTMLElement | undefined>>) {
   const els = () => castArray(access(el))
   createEventListener(() => els().map(e => e?.getRootNode()), 'click', e => setClicked(els().some(el => el?.contains(e.target))))
   return clicked
+}
+
+export function useMutation<T>(initial: MaybeAccessor<Node | Node[]>, options: MutationObserverInit, cb: () => T) {
+  const ret = createSignal<T>(cb())
+  createMutationObserver(initial, options, ms => ret[1](cb() as any))
+  return ret[0]
 }

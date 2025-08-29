@@ -9,7 +9,6 @@ import { useDark, useMemoAsync } from './hooks'
 import { Menu } from './components/Menu'
 import { DocTree } from './components/DocTree'
 import './web-component'
-import DataTable from './components/DataTable';
 
 const [isDark, setDark] = useDark()
 
@@ -29,8 +28,6 @@ const exports = [
 function App() {
   return (
     <div class=''>
-      {/* <DataTable /> */}
-
       <header class='sticky top-0 navbar min-h-0! h-12! z-9 box-border bg-[--header-bg]'>
         <div class='flex items-center'>
           <img id='logo' src='/vite.svg' />

@@ -9,6 +9,7 @@ export default defineConfig({
   },
   plugins: [
     solid(),
+    (await import('babel-plugin-solid-undestructure')).undestructurePlugin('ts'),
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('vanilla-js'),
     
     (await import('unocss/vite')).default({

@@ -1,11 +1,10 @@
 import { createElementBounds } from '@solid-primitives/bounds'
 import { children, createEffect, createMemo, For, Index, mergeProps, onMount, splitProps, type JSXElement } from 'solid-js'
 import { Portal } from 'solid-js/web'
-import { log } from '../utils'
 
 type SplitProps = {
-  container?: HTMLElement
-  cells: () => HTMLElement[]
+  container?: Element
+  cells: () => Element[]
   handle?: (i: number) => JSXElement
   size?: number
   dir?: 'x' | 'y'
@@ -13,14 +12,14 @@ type SplitProps = {
 }
 
 export const Split = (props: SplitProps & { children?: JSXElement }) => {
-  let el!: HTMLElement
+  let el!: Element
   const child = children(() => props.children)
 
   onMount(() => {
     useSplit({
       ...props,
       container: el,
-      cells: () => child()
+      cells: () => props.cells ? props.cells() : child()
     })
   })
 

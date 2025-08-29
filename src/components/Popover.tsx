@@ -1,4 +1,4 @@
-import { children, createEffect, createMemo, createSignal, splitProps } from 'solid-js'
+import { children, createEffect, createMemo, createSignal, type JSX, splitProps } from 'solid-js'
 import { Portal } from 'solid-js/web'
 import { autoUpdate, createFloating, type createFloatingProps, type ReferenceType } from 'floating-ui-solid'
 import type { AutoUpdateOptions } from '@floating-ui/dom'
@@ -23,7 +23,7 @@ export function Popover(attrs: FloatingProps) {
 
 type FloatingProps = {
   reference: ReferenceType
-  floating?: HTMLElement
+  floating?: JSX.Element | (() => JSX.Element)
   portal?: HTMLElement
   trigger?: 'click' | 'hover'
 } & createFloatingProps
