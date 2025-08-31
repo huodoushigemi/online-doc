@@ -11,6 +11,7 @@ export default defineConfig({
     solid(),
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('ts'),
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('vanilla-js'),
+    { load: (id) => id.includes('undestructure-macros') ? '' : null },
     
     (await import('unocss/vite')).default({
       content: {

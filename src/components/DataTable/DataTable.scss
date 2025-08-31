@@ -442,7 +442,7 @@
 }
 
 .fixed-left, .fixed-right {
-  @apply sticky bg-#fff;
+  @apply sticky z-1 bg-#fff;
 }
 
 .fixed-left::after {

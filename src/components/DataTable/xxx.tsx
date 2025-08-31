@@ -9,7 +9,8 @@ import { Split, useSplit } from '../Split'
 import './DataTable.scss'
 import { log, unFn } from '../../utils'
 import { createLazyMemo } from '@solid-primitives/memo'
-import { CopyPlugin, PastePlugin, RangeSelectorPlugin } from './advanced'
+import { CellSelectionPlugin } from './plugins/CellSelectionPlugin'
+import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
 
 export const Ctx = createContext({
   x: 0,
@@ -139,13 +140,13 @@ export const defaultsPlugins = [
   StickyHeaderPlugin(),
   FixedColumnPlugin(),
   ResizePlugin(),
-  RangeSelectorPlugin(),
+  CellSelectionPlugin(),
   CopyPlugin(),
   PastePlugin(),
 ]
 
 function BasePlugin(): Plugin {
-  const ks = ['children', 'col', 'data']
+  const ks = ['col', 'data']
   return {
     processProps: {
       tr: ({ tr }) => tr || 'tr',
@@ -154,21 +155,23 @@ function BasePlugin(): Plugin {
       table: ({ table }) => table || 'table',
       th: ({ th }) => o => {
         const { props } = useContext(Ctx)
-        const [_, o2] = splitProps(o, ks)
-        const extra = createMemo(() => [props.thProps?.(o) || {}, o.col.props?.(o) || {}], null, { equals: (a, b) =>  isEqual(a, b)})
-        return (
-          <Dynamic component={th || 'th'} {...omit(combineProps(o2, { }, { class: o.col.class, style: o.col.style }, ...extra()), ks)}>
-            {o.children}
-          </Dynamic>
+        const mProps = combineProps(
+          o,
+          () => ({ class: o.col.class, style: o.col.style }),
+          createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
+          createMemo(() => props.thProps?.(o) || {}, null, { equals: isEqual }),
         )
+        return <Dynamic component={th || 'th'} {...omit(mProps, ks)} />
       },
-      td: ({ td, tdProps }) => o => {
-        const [_, o2] = splitProps(o, ks)
-        return (
-          <Dynamic component={td || 'td'} {...omit(combineProps(o2, { }, { class: o.col.class, style: o.col.style }, o.col.props?.(o) || {}), ks)}>
-            {o.children}
-          </Dynamic>
+      td: ({ td }) => o => {
+        const { props } = useContext(Ctx)
+        const mProps = combineProps(
+          o,
+          () => ({ class: o.col.class, style: o.col.style }),
+          createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
+          createMemo(() => props.tdProps?.(o) || {}, null, { equals: isEqual }),
         )
+        return <Dynamic component={td || 'td'} {...omit(mProps, ks)} />
       }
     }
   }
