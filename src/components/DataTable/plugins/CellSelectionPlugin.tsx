@@ -1,4 +1,4 @@
-import { batch, createEffect, createMemo, onMount, splitProps, useContext, type Component } from 'solid-js'
+import { batch, createEffect, createMemo, createSignal, onMount, splitProps, useContext, type Component } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { component } from 'undestructure-macros'
 import { Ctx, type Plugin } from '../xxx'
@@ -6,7 +6,7 @@ import { combineProps } from '@solid-primitives/props'
 import { usePointerDrag } from '../../../hooks'
 import { createEventListener } from '@solid-primitives/event-listener'
 import { createShortcut, useKeyDownList } from '@solid-primitives/keyboard'
-import { access } from '@solid-primitives/utils'
+import { access, type MaybeAccessor } from '@solid-primitives/utils'
 import { log } from '../../../utils'
 
 export function CellSelectionPlugin(): Plugin {
@@ -40,12 +40,14 @@ export function CellSelectionPlugin(): Plugin {
           return clazz
         })
 
-        const mergedProps = combineProps(o, () => ({ class: clazz() }))
+        const mergedProps = combineProps(o, () => ({ class: clazz(), tabindex: -1 }))
         
         return <Dynamic component={td} {...mergedProps} />
       },
       table: ({ table }, { store }) => (o) => {
         let el: HTMLElement
+        const { props } = useContext(Ctx)
+        
         usePointerDrag(() => el, {
           start(e, move, end) {
             const findCell = (e: PointerEvent) => e.composedPath().find((e) => e.tagName == 'TH' || e.tagName == 'TD') as Element
@@ -80,9 +82,38 @@ export function CellSelectionPlugin(): Plugin {
             }
           },
         })
-        keymap(() => el,'ctrl+b', () => {
-          alert('ctrl+b')
+
+        keymap(() => el, '←', () => {
+          const { start, end } = store.selected
+          start[0] = end[0] = Math.max(start[0] - 1, 0)
+          end[1] = start[1]
+          scrollIntoView()
         })
+        keymap(() => el, '→', () => {
+          const { start, end } = store.selected
+          start[0] = end[0] = Math.min(start[0] + 1, props.columns!.length - 1)
+          end[1] = start[1]
+          scrollIntoView()
+        })
+        keymap(() => el, '↑', () => {
+          const { start, end } = store.selected
+          start[1] = end[1] = Math.max(start[1] - 1, 0)
+          end[0] = start[0]
+          scrollIntoView()
+        })
+        keymap(() => el, '↓', () => {
+          const { start, end } = store.selected
+          start[1] = end[1] = Math.min(start[1] + 1, props.data!.length - 1)
+          end[0] = start[0]
+          scrollIntoView()
+        })
+
+        const scrollIntoView = () => {
+          const cell = el.querySelector(`td[x="${store.selected.start[0]}"][y="${store.selected.start[1]}"]`)
+          cell.scrollIntoViewIfNeeded(false)
+          cell.focus()
+        }
+        
         return (
           <Dynamic
             component={table}
@@ -94,10 +125,30 @@ export function CellSelectionPlugin(): Plugin {
   }
 }
 
-function keymap(el, keys: string, cb: (e: KeyboardEvent) => void) {
-  const alias = { ctrl: 'CONTROL' }
-  createShortcut(keys.split('+').map(e => alias[e] ?? e.toUpperCase()), e => {
-    if (document.activeElement != access(el)) return
-    cb(e!)
+function keymap(el: MaybeAccessor<HTMLElement>, keys: string, cb: (e: KeyboardEvent) => void) {
+  const alias = {
+    'ctrl': 'Control',
+    '←': 'ArrowLeft',
+    '→': 'ArrowRight',
+    '↑': 'ArrowUp',
+    '↓': 'ArrowDown',
+    'lt': 'ArrowLeft',
+    'rt': 'ArrowRight',
+    'up': 'ArrowUp',
+    'dn': 'ArrowDown',
+  }
+  const set = new Set<string>()
+  createEventListener(el, 'keydown', e => {
+    set.add(e.key.toLowerCase())
+    if (set.size == keys.length && keys.split('+').every(k => set.has(alias[k]?.toLowerCase() ?? k))) {
+      e.preventDefault()
+      // batch(() => cb(e))
+      cb(e)
+    }
   })
+  createEventListener(el, 'keyup', e => {
+    set.delete(e.key.toLowerCase())
+  })
+
+  createEventListener(el, 'blur', () => set.clear())
 }

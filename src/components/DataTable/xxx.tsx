@@ -38,6 +38,8 @@ interface TableProps {
   thead?: string | Component<any>
   tbody?: string | Component<any>
   table?: string | Component<any>
+  EachRows?: typeof For
+  EachCells?: typeof For
   // 
   thProps?: (props) => JSX.HTMLAttributes<any>
   tdProps?: (props) => JSX.HTMLAttributes<any>
@@ -102,32 +104,32 @@ export const Table = (props: TableProps) => {
   )
 }
 
-const THead = (props) => {
-  const ctx = useContext(Ctx)
+const THead = () => {
+  const { props } = useContext(Ctx)
   return (
-    <Dynamic component={ctx.props.thead || 'thead'}>
-      <Dynamic component={ctx.props.tr || 'tr'}>
-        <For each={ctx.props.columns}>{(col, colIndex) => (
-          <Dynamic component={ctx.props.th || 'th'} col={col} x={colIndex()}>{col.name}</Dynamic>
-        )}</For>
+    <Dynamic component={props.thead || 'thead'}>
+      <Dynamic component={props.tr || 'tr'}>
+        <Dynamic component={props.EachCells || For} each={props.columns || []}>
+          {(col, colIndex) => <Dynamic component={props.th || 'th'} col={col} x={colIndex()}>{col.name}</Dynamic>}
+        </Dynamic>
       </Dynamic>
     </Dynamic>
   )
 }
 
-const TBody = (props) => {
-  const ctx = useContext(Ctx)
+const TBody = () => {
+  const { props } = useContext(Ctx)
   return (
-    <Dynamic component={ctx.props.tbody || 'tbody'}>
-      <For each={ctx.props.data}>{(row, rowIndex) => (
-        <Dynamic component={ctx.props.tr || 'tr'}>
-          <For each={ctx.props.columns}>{(col, colIndex) => (
-            <Dynamic component={ctx.props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
+    <Dynamic component={props.tbody || 'tbody'}>
+      <Dynamic component={props.EachRows || For} each={props.data}>{(row, rowIndex) => (
+        <Dynamic component={props.tr || 'tr'}>
+          <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
+            <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
               {col.render ? col.render(row, rowIndex()) : row[col.id]}
             </Dynamic>
-          )}</For>
+          )}</Dynamic>
         </Dynamic>
-      )}</For>
+      )}</Dynamic>
     </Dynamic>
   )
 }
@@ -172,7 +174,7 @@ function BasePlugin(): Plugin {
           createMemo(() => props.tdProps?.(o) || {}, null, { equals: isEqual }),
         )
         return <Dynamic component={td || 'td'} {...omit(mProps, ks)} />
-      }
+      },
     }
   }
 }

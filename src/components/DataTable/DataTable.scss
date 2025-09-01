@@ -416,7 +416,7 @@
 
   & > * > tr {
     & > td, & > th {
-      @apply px-2 lh-[28px];
+      @apply px-2 lh-[28px] outline-0;
       text-align: inherit;
     }
   }
