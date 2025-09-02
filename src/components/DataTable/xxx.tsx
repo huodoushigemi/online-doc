@@ -11,6 +11,7 @@ import { log, unFn } from '../../utils'
 import { createLazyMemo } from '@solid-primitives/memo'
 import { CellSelectionPlugin } from './plugins/CellSelectionPlugin'
 import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
+import { VirtualScrollPlugin } from './plugins/VirtualScrollPlugin'
 
 export const Ctx = createContext({
   x: 0,
@@ -93,7 +94,7 @@ export const Table = (props: TableProps) => {
 
   return (
     <Ctx.Provider value={ctx}>
-      <Dynamic component={ctx.props.table || 'table'} class='m-2 data-table' border='1'>
+      <Dynamic component={ctx.props.table || 'table'} class='m-2 data-table'>
         <colgroup>
           <For each={ctx.props.columns}>{e => <col style={`width: ${e.width}px`} />}</For>
         </colgroup>
@@ -145,6 +146,7 @@ export const defaultsPlugins = [
   CellSelectionPlugin(),
   CopyPlugin(),
   PastePlugin(),
+  VirtualScrollPlugin(),
 ]
 
 function BasePlugin(): Plugin {
@@ -175,6 +177,8 @@ function BasePlugin(): Plugin {
         )
         return <Dynamic component={td || 'td'} {...omit(mProps, ks)} />
       },
+      EachRows: ({ EachRows }) => EachRows || For,
+      EachCells: ({ EachCells }) => EachCells || For
     }
   }
 }

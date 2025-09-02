@@ -15,7 +15,7 @@ export function CopyPlugin(): Plugin {
         const ctx = useContext(Ctx)
 
         createEventListener(() => el, 'pointerdown', () => {
-          el.focus()
+          el.focus({ preventScroll: true })
         })
 
         createEventListener(() => el, 'keydown', e => {

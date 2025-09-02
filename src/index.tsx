@@ -21,7 +21,7 @@ const root = document.getElementById('root')!
 const state = createMutable({ bool: true })
 
 const cols = range(30).map(e => ({ name: e, id: e, width: 80 }))
-const [data, setData] = createSignal(range(30).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i]))))
+const [data, setData] = createSignal(range(30).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
 
 render(() => <input type='checkbox' checked={state.bool} onChange={(e) => state.bool = e.currentTarget.checked} />, root)
 

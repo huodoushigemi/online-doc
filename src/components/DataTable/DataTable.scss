@@ -412,7 +412,7 @@
 
 
 .data-table {
-  @apply h-[100px] b-1 overflow-auto border-collapse;
+  @apply b-1 border-collapse outline-0;
 
   & > * > tr {
     & > td, & > th {
