@@ -173,10 +173,7 @@ function BasePlugin(): Plugin {
           style: props.style
         }), o)
         return (
-          <Dynamic component={table || 'table'} {...o}>
-            {o.children}
-            {props.border && <div class='data-table__border' />}
-          </Dynamic>
+          <Dynamic component={table || 'table'} {...o} />
         )
       },
       th: ({ th }, { store }) => o => {

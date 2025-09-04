@@ -8,7 +8,7 @@ import { Table } from './components/DataTable/xxx.tsx'
 
 import 'virtual:uno.css'
 import { createMutable } from 'solid-js/store'
-import { identity, range } from 'es-toolkit'
+import { range } from 'es-toolkit'
 import { createSignal } from 'solid-js'
 
 // import '@el-form-render/element-plus/wc'

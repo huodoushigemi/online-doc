@@ -7,13 +7,10 @@
   }
 
   &--border {
+    @apply outline-(1 solid #ebeef5);
     th, td {
       @apply b-(0 solid #ebeef5) b-r-1 b-b-1;
     }
-  }
-
-  &__border {
-    @apply absolute inset-0 b-(1 solid #ebeef5) pointer-events-none z-9;
   }
 }
 
