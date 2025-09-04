@@ -1,12 +1,10 @@
-import { batch, createEffect, createMemo, createSignal, onMount, splitProps, useContext, type Component } from 'solid-js'
+import { createMemo, useContext } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
-import { component } from 'undestructure-macros'
-import { Ctx, type Plugin } from '../xxx'
 import { combineProps } from '@solid-primitives/props'
-import { usePointerDrag } from '../../../hooks'
 import { createEventListener } from '@solid-primitives/event-listener'
-import { createShortcut, useKeyDownList } from '@solid-primitives/keyboard'
-import { access, type MaybeAccessor } from '@solid-primitives/utils'
+import { type MaybeAccessor } from '@solid-primitives/utils'
+import { Ctx, type Plugin } from '../xxx'
+import { usePointerDrag } from '../../../hooks'
 import { log } from '../../../utils'
 
 export function CellSelectionPlugin(): Plugin {
@@ -40,7 +38,7 @@ export function CellSelectionPlugin(): Plugin {
           return clazz
         })
 
-        const mergedProps = combineProps(o, () => ({ class: clazz(), tabindex: -1 }))
+        const mergedProps = combineProps(() => ({ class: clazz(), tabindex: -1 }), o)
         
         return <Dynamic component={td} {...mergedProps} />
       },

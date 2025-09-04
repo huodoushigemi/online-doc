@@ -62,6 +62,7 @@
     "@unocss/transformer-directives": "^66.4.2",
     "babel-plugin-solid-undestructure": "^1.1.0",
     "prosemirror-view": "^1.40.1",
+    "rollup-plugin-visualizer": "^6.0.3",
     "sass": "^1.90.0",
     "typescript": "~5.8.3",
     "undestructure-macros": "^0.0.1",

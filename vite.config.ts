@@ -9,7 +9,7 @@ export default defineConfig({
   },
   plugins: [
     solid(),
-    (await import('babel-plugin-solid-undestructure')).undestructurePlugin('ts'),
+    (await import('babel-plugin-solid-undestructure')).undestructurePlugin('ts'), 
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('vanilla-js'),
     { load: (id) => id.includes('undestructure-macros') ? '' : null },
     
@@ -48,6 +48,8 @@ export default defineConfig({
       customCollections: {
         my: (await import('unplugin-icons/loaders')).FileSystemIconLoader('src/assets')
       }
-    })
+    }),
+
+    (await import('rollup-plugin-visualizer')).visualizer()
   ],
 })
