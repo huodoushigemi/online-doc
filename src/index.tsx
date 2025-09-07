@@ -20,10 +20,10 @@ const root = document.getElementById('root')!
 // render(() => <el-form-render prop:items={[{ lp: '111' }]} />, root!)
 const state = createMutable({ bool: true })
 
-const cols = range(100).map(e => ({ name: e, id: e, width: 80 }))
-// cols[0].fixed = 'left'
-// cols.at(-1).fixed = 'right'
-const [data, setData] = createSignal(range(300).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
+// const cols = range(100).map(e => ({ name: e, id: e, width: 80 }))
+// const [data, setData] = createSignal(range(300).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
+const cols = range(10).map(e => ({ name: e, id: e, width: 80 }))
+const [data, setData] = createSignal(range(20).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
 
 render(() => <input type='checkbox' checked={state.bool} onChange={(e) => state.bool = e.currentTarget.checked} />, root)
 

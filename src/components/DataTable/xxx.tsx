@@ -13,17 +13,19 @@ import { createElementSize } from '@solid-primitives/resize-observer'
 import { CellSelectionPlugin } from './plugins/CellSelectionPlugin'
 import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
 import { VirtualScrollPlugin } from './plugins/VirtualScrollPlugin'
+import { ExpandPlugin } from './plugins/ExpandPlugin'
+import { component } from 'undestructure-macros'
 
 export const Ctx = createContext({
   props: {} as TableProps
 })
 
 type ProcessProps = {
-  [K in keyof TableProps]?: (props: TableProps, ctx: { store: Record<any, any> }) => TableProps[K]
+  [K in keyof TableProps]?: (props: TableProps, ctx: { store: TableStore }) => TableProps[K]
 }
 
 export type Plugin = {
-  store?: (store: any) => Record<any, any>
+  store?: (store: TableStore) => Partial<TableStore>
   processProps?: ProcessProps
 }
 
@@ -54,7 +56,7 @@ export interface TableProps {
 
 export interface TableColumn {
   id?: any
-  name: string
+  name?: string
   width?: number
   fixed?: 'left' | 'right'
   render?: (data: any, index: number) => JSXElement
@@ -62,6 +64,10 @@ export interface TableColumn {
   style?: any
   props?: (props) => JSX.HTMLAttributes<any>
   onWidthChange?: (width: number) => void
+}
+
+export interface TableStore extends Record<any, any> {
+  
 }
 
 export const Table = (props: TableProps) => {
@@ -129,7 +135,7 @@ const TBody = () => {
   return (
     <Dynamic component={props.tbody || 'tbody'}>
       <Dynamic component={props.EachRows || For} each={props.data}>{(row, rowIndex) => (
-        <Dynamic component={props.tr || 'tr'} y={rowIndex()}>
+        <Dynamic component={props.tr || 'tr'} y={rowIndex()} data={row}>
           <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
             <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
               {col.render ? col.render(row, rowIndex()) : row[col.id]}
@@ -152,7 +158,8 @@ export const defaultsPlugins = [
   CellSelectionPlugin(),
   CopyPlugin(),
   PastePlugin(),
-  VirtualScrollPlugin(),
+  // VirtualScrollPlugin(),
+  ExpandPlugin()
 ]
 
 function BasePlugin(): Plugin {
@@ -163,7 +170,6 @@ function BasePlugin(): Plugin {
       thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el)))
     }),
     processProps: {
-      tr: ({ tr }) => tr || 'tr',
       tbody: ({ tbody }) => tbody || 'tbody',
       thead: ({ thead }) => thead || 'thead',
       table: ({ table }) => o => {
@@ -176,6 +182,9 @@ function BasePlugin(): Plugin {
           <Dynamic component={table || 'table'} {...o} />
         )
       },
+      tr: ({ tr }) => component(({ data, ...props }) => {
+        return <Dynamic component={tr || 'tr'} {...props} />
+      }),
       th: ({ th }, { store }) => o => {
         const [el, setEl] = createSignal<HTMLElement>()
         

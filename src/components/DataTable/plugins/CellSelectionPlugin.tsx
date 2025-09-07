@@ -1,4 +1,4 @@
-import { createMemo, useContext } from 'solid-js'
+import { batch, createEffect, createMemo, useContext } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { createEventListener } from '@solid-primitives/event-listener'
@@ -6,6 +6,16 @@ import { type MaybeAccessor } from '@solid-primitives/utils'
 import { Ctx, type Plugin } from '../xxx'
 import { usePointerDrag } from '../../../hooks'
 import { log } from '../../../utils'
+import { difference } from 'es-toolkit'
+
+declare module '../xxx' {
+  interface TableProps {
+    
+  }
+  interface TableStore {
+    selected: { start: number[]; end: number[] }
+  }
+}
 
 export function CellSelectionPlugin(): Plugin {
   const inrange = (v, min, max) => v <= max && v >= min
@@ -48,36 +58,38 @@ export function CellSelectionPlugin(): Plugin {
         
         usePointerDrag(() => el, {
           start(e, move, end) {
-            const findCell = (e: PointerEvent) => e.composedPath().find((e) => e.tagName == 'TH' || e.tagName == 'TD') as Element
-            const cell = findCell(e)
-            if (!cell) return
-            if (cell.tagName == 'TH') {
-              store.selected.start = [+cell.getAttribute('x')!, 0]
-              store.selected.end = [+cell.getAttribute('x')!, Infinity]
-              move(e => {
-                const cell = findCell(e)
-                if (!cell) return
+            batch(() => {
+              const findCell = (e: PointerEvent) => e.composedPath().find((e) => e.tagName == 'TH' || e.tagName == 'TD') as Element
+              const cell = findCell(e)
+              if (!cell) return
+              if (cell.tagName == 'TH') {
+                store.selected.start = [+cell.getAttribute('x')!, 0]
                 store.selected.end = [+cell.getAttribute('x')!, Infinity]
-              })
-            }
-            if (cell.classList.contains('index')) {
-              store.selected.start = [0, +cell.getAttribute('y')!]
-              store.selected.end = [Infinity, +cell.getAttribute('y')!]
-              move(e => {
-                const cell = findCell(e)
-                if (!cell) return
+                move(e => {
+                  const cell = findCell(e)
+                  if (!cell) return
+                  store.selected.end = [+cell.getAttribute('x')!, Infinity]
+                })
+              }
+              if (cell.classList.contains('index')) {
+                store.selected.start = [0, +cell.getAttribute('y')!]
                 store.selected.end = [Infinity, +cell.getAttribute('y')!]
-              })
-            }
-            else if (cell.tagName == 'TD') {
-              store.selected.start = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
-              store.selected.end = [...store.selected.start]
-              move(e => {
-                const cell = findCell(e)
-                if (!cell) return
-                store.selected.end = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
-              })
-            }
+                move(e => {
+                  const cell = findCell(e)
+                  if (!cell) return
+                  store.selected.end = [Infinity, +cell.getAttribute('y')!]
+                })
+              }
+              else if (cell.tagName == 'TD') {
+                store.selected.start = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
+                store.selected.end = [...store.selected.start]
+                move(e => {
+                  const cell = findCell(e)
+                  if (!cell) return
+                  store.selected.end = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
+                })
+              }
+            })
           },
         })
 
