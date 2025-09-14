@@ -1,4 +1,4 @@
-import { batch, createEffect, createMemo, useContext } from 'solid-js'
+import { batch, createMemo, useContext } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { createEventListener } from '@solid-primitives/event-listener'
@@ -47,9 +47,8 @@ export function CellSelectionPlugin(): Plugin {
           if (o.col.id == store.$index?.id && iny) clazz += 'row-range-highlight '
           return clazz
         })
-
-        const mergedProps = combineProps(() => ({ class: clazz(), tabindex: -1 }), o)
         
+        const mergedProps = combineProps(o, { get class() { return clazz() }, tabindex: -1 })
         return <Dynamic component={td} {...mergedProps} />
       },
       table: ({ table }, { store }) => (o) => {
@@ -60,33 +59,46 @@ export function CellSelectionPlugin(): Plugin {
           start(e, move, end) {
             batch(() => {
               const findCell = (e: PointerEvent) => e.composedPath().find((e) => e.tagName == 'TH' || e.tagName == 'TD') as Element
+              const getXY = (cell: Element) => [cell.getAttribute('x'), cell.getAttribute('y')]
               const cell = findCell(e)
               if (!cell) return
               if (cell.tagName == 'TH') {
-                store.selected.start = [+cell.getAttribute('x')!, 0]
-                store.selected.end = [+cell.getAttribute('x')!, Infinity]
+                const [x, y] = getXY(cell)
+                if (x == null) return
+                store.selected.start = [+x, 0]
+                store.selected.end = [+x, Infinity]
                 move(e => {
                   const cell = findCell(e)
                   if (!cell) return
-                  store.selected.end = [+cell.getAttribute('x')!, Infinity]
+                  const [x, y] = getXY(cell)
+                  if (x == null) return
+                  store.selected.end = [+x, Infinity]
                 })
               }
               if (cell.classList.contains('index')) {
-                store.selected.start = [0, +cell.getAttribute('y')!]
-                store.selected.end = [Infinity, +cell.getAttribute('y')!]
+                const [x, y] = getXY(cell)
+                if (x == null || y == null) return
+                store.selected.start = [0, +y]
+                store.selected.end = [Infinity, +y]
                 move(e => {
                   const cell = findCell(e)
                   if (!cell) return
-                  store.selected.end = [Infinity, +cell.getAttribute('y')!]
+                  const [x, y] = getXY(cell)
+                  if (x == null || y == null) return
+                  store.selected.end = [Infinity, +y]
                 })
               }
               else if (cell.tagName == 'TD') {
-                store.selected.start = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
+                const [x, y] = getXY(cell)
+                if (x == null || y == null) return
+                store.selected.start = [+x, +y]
                 store.selected.end = [...store.selected.start]
                 move(e => {
                   const cell = findCell(e)
                   if (!cell) return
-                  store.selected.end = [+cell.getAttribute('x')!, +cell.getAttribute('y')!]
+                  const [x, y] = getXY(cell)
+                  if (x == null || y == null) return
+                  store.selected.end = [+x, +y]
                 })
               }
             })
@@ -123,13 +135,10 @@ export function CellSelectionPlugin(): Plugin {
           cell.scrollIntoViewIfNeeded(false)
           cell.focus()
         }
+
+        o = combineProps(o, { ref: e => el = e })
         
-        return (
-          <Dynamic
-            component={table}
-            {...combineProps(o, { ref: e => el = e })}
-          />
-        )
+        return <Dynamic component={table} {...o} />
       }
     }
   }

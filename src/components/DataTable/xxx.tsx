@@ -1,5 +1,5 @@
 import { clamp, difference, isEqual, mapValues, omit, sumBy } from 'es-toolkit'
-import { createContext, createMemo, createSignal, For, useContext, type JSXElement, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup } from 'solid-js'
+import { createContext, createMemo, createSignal, For, useContext, type JSXElement, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, children } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { Dynamic, memo, Portal } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
@@ -15,6 +15,7 @@ import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
 import { VirtualScrollPlugin } from './plugins/VirtualScrollPlugin'
 import { ExpandPlugin } from './plugins/ExpandPlugin'
 import { component } from 'undestructure-macros'
+import { RowGroupPlugin } from './plugins/RowGroupPlugin'
 
 export const Ctx = createContext({
   props: {} as TableProps
@@ -54,7 +55,9 @@ export interface TableProps {
   plugins?: Plugin[]
 }
 
-export interface TableColumn {
+type Obj = Record<string | symbol, any>
+
+export interface TableColumn extends Obj {
   id?: any
   name?: string
   width?: number
@@ -66,8 +69,15 @@ export interface TableColumn {
   onWidthChange?: (width: number) => void
 }
 
-export interface TableStore extends Record<any, any> {
-  
+type Nullable<T> = T | undefined
+
+export interface TableStore extends Obj {
+  ths: Nullable<Element>[]
+  thSizes: Nullable<{ width: number; height: number }>[]
+  trs: Nullable<Element>[]
+  trSizes: Nullable<{ width: number; height: number }>[]
+  internal_col: symbol
+  props?: TableProps
 }
 
 export const Table = (props: TableProps) => {
@@ -88,9 +98,9 @@ export const Table = (props: TableProps) => {
     plugins().reduce((o, e, i) => {}, props[k])
   })
   
-  const store = createMutable({})
-
-  log(store)
+  const store = createMutable({}) as TableStore
+  const mProps = toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) as TableProps
+  store.props = mProps
 
   createComputed((old: Plugin[]) => {
     const added = difference(plugins(), old)
@@ -98,11 +108,14 @@ export const Table = (props: TableProps) => {
     return plugins()
   }, [])
 
-  const ctx = createMutable({ x: 0, props: toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) })
+  const ctx = createMutable({ x: 0, props: mProps })
 
-  createEffect(() => {
-    console.log(JSON.parse(JSON.stringify(ctx.props.data)))
-  })
+  window.store = store
+  window.ctx = ctx
+
+  // createEffect(() => {
+  //   console.log(JSON.parse(JSON.stringify(ctx.props.data)))
+  // })
 
   return (
     <Ctx.Provider value={ctx}>
@@ -139,6 +152,7 @@ const TBody = () => {
           <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
             <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
               {col.render ? col.render(row, rowIndex()) : row[col.id]}
+              <div></div>
             </Dynamic>
           )}</Dynamic>
         </Dynamic>
@@ -158,16 +172,21 @@ export const defaultsPlugins = [
   CellSelectionPlugin(),
   CopyPlugin(),
   PastePlugin(),
-  // VirtualScrollPlugin(),
-  ExpandPlugin()
+  VirtualScrollPlugin(),
+  // ExpandPlugin(),
+  RowGroupPlugin(),
 ]
 
 function BasePlugin(): Plugin {
-  const ks = ['col', 'data']
+  const omits = { col: null, data: null }
   return {
     store: (store) => ({
       ths: [],
-      thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el)))
+      thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el))),
+      trs: [],
+      trSizes: toReactive(mapArray(() => store.trs, el => el && createElementSize(el))),
+      // 
+      internal_col: Symbol('internal_col')
     }),
     processProps: {
       tbody: ({ tbody }) => tbody || 'tbody',
@@ -182,8 +201,17 @@ function BasePlugin(): Plugin {
           <Dynamic component={table || 'table'} {...o} />
         )
       },
-      tr: ({ tr }) => component(({ data, ...props }) => {
-        return <Dynamic component={tr || 'tr'} {...props} />
+      tr: ({ tr }, { store }) => component(({ data, ...o }) => {
+        const [el, setEl] = createSignal<HTMLElement>()
+        o = combineProps({ ref: setEl }, o)
+
+        createEffect(() => {
+          const { y } = o
+          store.trs[y] = el()
+          onCleanup(() => store.trs[y] = void 0)
+        })
+
+        return <Dynamic component={tr || 'tr'} {...o} />
       }),
       th: ({ th }, { store }) => o => {
         const [el, setEl] = createSignal<HTMLElement>()
@@ -195,16 +223,18 @@ function BasePlugin(): Plugin {
           createMemo(() => props.cellProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => props.thProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
+          omits
         )
 
         createEffect(() => {
-          store.ths[o.x] = el()
-          onCleanup(() => store.ths[o.x] = void 0)
+          const { x } = o
+          store.ths[x] = el()
+          onCleanup(() => store.ths[x] = void 0)
         })
         
-        return <Dynamic component={th || 'th'} {...omit(mProps, ks)} />
+        return <Dynamic component={th || 'th'} {...mProps}>{o.children}</Dynamic>
       },
-      td: ({ td }) => o => {
+      td: ({ td }, { store }) => o => {
         const { props } = useContext(Ctx)
         const mProps = combineProps(
           o,
@@ -212,8 +242,9 @@ function BasePlugin(): Plugin {
           createMemo(() => props.cellProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => props.tdProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
+          omits
         )
-        return <Dynamic component={td || 'td'} {...omit(mProps, ks)} />
+        return <Dynamic component={td || 'td'} {...mProps}>{o.children}</Dynamic>
       },
       EachRows: ({ EachRows }) => EachRows || For,
       EachCells: ({ EachCells }) => EachCells || For
@@ -223,8 +254,8 @@ function BasePlugin(): Plugin {
 
 function IndexPlugin(): Plugin {
   return {
-    store: () => ({
-      $index: { name: '', id: Symbol('index'), fixed: 'left', width: 40, style: 'text-align: center', class: 'index', render: (_, i) => i + 1 }
+    store: (store) => ({
+      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal_col]: 1, width: 40, style: 'text-align: center', class: 'index', render: (_, i) => i + 1 }
     }),
     processProps: {
       columns: (props, { store }) => props.index ? [store.$index, ...props.columns || []] : props.columns
@@ -248,13 +279,9 @@ function FixedColumnPlugin(): Plugin {
   return {
     processProps: {
       columns: ({ columns }) => [
-        ...columns?.filter(e => e.fixed == 'left').map(col => ({
-          ...col,
-        })) || [],
+        ...columns?.filter(e => e.fixed == 'left') || [],
         ...columns?.filter(e => !e.fixed) || [],
-        ...columns?.filter(e => e.fixed == 'right').map(col => ({
-          ...col,
-        })) || [],
+        ...columns?.filter(e => e.fixed == 'right') || [],
       ],
       cellProps: ({ cellProps }, { store }) => (o) => {
         const { x, col: { fixed } } = o

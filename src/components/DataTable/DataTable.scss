@@ -68,8 +68,12 @@ body {
 
 // 
 .data-table.virtual { 
-  @apply block;
+  @apply block of-auto w-fit;
 
   thead { @apply block w-fit [&>tr]-(flex) [&>tr>th]-(block flex-[0_0_auto]); }
   tbody { @apply block w-fit [&>tr]-(flex) [&>tr>td]-(block flex-[0_0_auto]); }
+}
+
+.icon-clickable { 
+  @apply flex justify-center items-center p-.5 w-5 h-5 box-border rd-1 hover:bg-gray/30 [&>svg]:(w-full h-full);
 }

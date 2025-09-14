@@ -1,4 +1,4 @@
-# ✨ 富文本编辑器 - 强大、轻量、易集成
+<!-- # ✨ 富文本编辑器 - 强大、轻量、易集成
 
 [![在线体验](https://img.shields.io/badge/在线体验-立即试用-blue?style=for-the-badge)](https://huodoushigemi.github.io/online-doc)
 
@@ -25,12 +25,10 @@ const editedContent = await import('https://huodoushigemi.github.io/online-doc/f
 
 ✅ **主题定制** - 内置亮色/暗色主题
 
-<!-- ✅ **历史记录** - 完整的撤销/重做功能 -->
-
 ## 🚧 即将推出
 
 🔜 AI智能辅助写作
 
 🔜 多人实时协作编辑
 
-🔜 插件扩展系统
+🔜 插件扩展系统 -->

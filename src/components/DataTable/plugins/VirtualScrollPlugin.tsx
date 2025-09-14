@@ -1,10 +1,8 @@
-import { createMemo, onMount, useContext } from 'solid-js'
+import { createEffect, createMemo, onMount, useContext } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
-import { createVirtualizer, defaultRangeExtractor } from '@tanstack/solid-virtual'
+import { createVirtualizer, defaultRangeExtractor, Virtualizer } from '@tanstack/solid-virtual'
 import { Ctx, type Plugin } from '../xxx'
-import { log } from '../../../utils'
-import { keyBy } from 'es-toolkit'
 
 const $ML = Symbol()
 
@@ -12,6 +10,10 @@ const $ML = Symbol()
 declare module '../xxx' {
   interface TableProps {
     
+  }
+  interface TableStore {
+    virtualizerY: Virtualizer<HTMLElement, Element>
+    virtualizerX: Virtualizer<HTMLElement, Element>
   }
 }
 
@@ -25,19 +27,16 @@ export function VirtualScrollPlugin(): Plugin {
         
         const virtualizerY = createVirtualizer({
           getScrollElement: () => el,
-          count: props.data?.length || 0,
+          get count() { return props.data?.length || 0 },
           estimateSize: () => 30,
           overscan: 10,
           indexAttribute: 'y',
-          // rangeExtractor(range) {
-          //   return range
-          // }
         })
 
         const virtualizerX = createVirtualizer({
           horizontal: true,
           getScrollElement: () => el,
-          count: props.columns?.length || 0,
+          get count() { return props.columns?.length || 0 },
           estimateSize: i => props.columns?.[i].width ?? 40,
           overscan: 5,
           indexAttribute: 'x',
@@ -62,7 +61,7 @@ export function VirtualScrollPlugin(): Plugin {
           return ret
         })
 
-        o = combineProps(() => ({ ref: e => el = e, class: 'virtual', style: `width: 600px; height: 600px; overflow: auto;` }), o)
+        o = combineProps({ ref: e => el = e, class: 'virtual' }, o)
 
         return (
           <Dynamic component={table} {...o}>
@@ -73,20 +72,17 @@ export function VirtualScrollPlugin(): Plugin {
       },
       td: ({ td }, { store }) => (o) => {
         const ml = createMemo(() => store[$ML]()[o.x])
-        o = combineProps(() => ({ style: `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` }), o)
-        return <Dynamic component={td} {...o} />
+        const mo = combineProps({ get style() { return `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` } }, o)
+        return <Dynamic component={td} {...mo} />
       },
       th: ({ th }, { store }) => (o) => {
         const ml = createMemo(() => store[$ML]?.()[o.x])
-        let el
-        onMount(() => store.virtualizerX.measureElement(el))
-        o = combineProps({ ref: e => el = e }, () => ({ style: `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` }), o)
+        o = combineProps(() => ({ style: `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` }), o)
+        createEffect(() => store.thSizes[o.x] && store.virtualizerX.resizeItem(o.y, store.thSizes[o.x]!.width))
         return <Dynamic component={th} {...o} />
       },
       tr: ({ tr }, { store }) => (o) => {
-        let el
-        onMount(() => store.virtualizerY.measureElement(el))
-        o = combineProps({ ref: e => el = e }, o)
+        createEffect(() => store.trSizes[o.y] && store.virtualizerY.resizeItem(o.y, store.trSizes[o.y]!.height))
         return <Dynamic component={tr} {...o} />
       },
       thead: ({ thead }, { store }) => o => {
@@ -101,14 +97,25 @@ export function VirtualScrollPlugin(): Plugin {
         }), o)
         return <Dynamic component={tbody} {...o} />
       },
+      // tr: ({ tr }, { store }) => (o) => {
+      //   let el
+      //   o = combineProps({ ref: e => el = e }, o)
+      //   o = combineProps(() => ({ style: `transform: translate(0, ${store.virtualizerY.getOffsetForIndex(o.y, 'start')?.[0]}px); position: absolute` }), o)
+      //   onMount(() => store.virtualizerY.measureElement(el))
+      //   return <Dynamic component={tr} {...o} />
+      // },
+      // tbody: ({ tbody }, { store }) => o => {
+      //   o = combineProps(() => ({
+      //     style: `width: ${store.virtualizerX.getTotalSize()}px; height: ${store.virtualizerY.getTotalSize()}px`
+      //   }), o)
+      //   return <Dynamic component={tbody} {...o} />
+      // },
       EachRows: ({ EachRows }, { store }) => (o) => {
-        const { props } = useContext(Ctx)
-        const keyed = createMemo(() => keyBy(store.virtualizerY.getVirtualItems(), e => e.key))
+        const list = createMemo(() => store.virtualizerY.getVirtualItems().map(e => o.each[e.index]))
         return (
-          <Dynamic component={EachRows} each={Object.keys(keyed())}>
-            {(key, i) => {
-              const item = keyed()[key]
-              return o.children(props.data![item.index], () => item.index)
+          <Dynamic component={EachRows} {...o} each={list()}>
+            {(e, i) => {
+              return o.children(e, createMemo(() => store.virtualizerY.getVirtualItems()[i()].index))
             }}
           </Dynamic>
         )
@@ -118,8 +125,7 @@ export function VirtualScrollPlugin(): Plugin {
         return (
           <Dynamic component={EachCells} {...o} each={list()}>
             {(e, i) => {
-              const item = store.virtualizerX.getVirtualItems()[i()]
-              return o.children(e, () => item.index)
+              return o.children(e, createMemo(() => store.virtualizerX.getVirtualItems()[i()].index))
             }}
           </Dynamic>
         )
