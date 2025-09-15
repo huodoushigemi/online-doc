@@ -31,6 +31,7 @@ data().forEach((e, i) => e.g = e[0] % 10)
 data().forEach((e, i) => e.n = i % 3)
 
 // cols[2].fixed = 'left'
+cols[0].editable = true
 
 render(() => <Table
   // {...window.www}

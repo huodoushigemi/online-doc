@@ -39,9 +39,9 @@ export interface TableProps {
   class: any
   style: any
   // Component
-  td?: string | Component<any>
-  th?: string | Component<any>
-  tr?: string | Component<any>
+  td?: string | Component<{ x: number; y: number; data: any; col: TableColumn; children: JSX.Element }>
+  th?: string | Component<{ x: number; col: TableColumn; children: JSX.Element }>
+  tr?: string | Component<{ y?: number; data?: any; children: JSX.Element }>
   thead?: string | Component<any>
   tbody?: string | Component<any>
   table?: string | Component<any>
