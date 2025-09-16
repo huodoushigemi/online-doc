@@ -31,7 +31,7 @@ export function ExpandPlugin(): Plugin {
         width: 45,
         render: (data, i) => <ArrowCell store={store} data={data} />,
         props: o => ({ onClick: () => store.toggleExpand(o.data) }),
-        [store.internal_col]: 1
+        [store.internal]: 1
       },
       isExpand: data => !!store.expands.find(e => unwrap(e) == unwrap(data)),
       toggleExpand: (data) => store.isExpand(data) ? remove(store.expands!, e => unwrap(e) == unwrap(data)) : store.expands.push(unwrap(data))

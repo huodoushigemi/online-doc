@@ -16,6 +16,7 @@ import { VirtualScrollPlugin } from './plugins/VirtualScrollPlugin'
 import { ExpandPlugin } from './plugins/ExpandPlugin'
 import { component } from 'undestructure-macros'
 import { RowGroupPlugin } from './plugins/RowGroupPlugin'
+import { EditablePlugin } from './plugins/EditablePlugin'
 
 export const Ctx = createContext({
   props: {} as TableProps
@@ -76,7 +77,7 @@ export interface TableStore extends Obj {
   thSizes: Nullable<{ width: number; height: number }>[]
   trs: Nullable<Element>[]
   trSizes: Nullable<{ width: number; height: number }>[]
-  internal_col: symbol
+  internal: symbol
   props?: TableProps
 }
 
@@ -152,7 +153,6 @@ const TBody = () => {
           <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
             <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
               {col.render ? col.render(row, rowIndex()) : row[col.id]}
-              <div></div>
             </Dynamic>
           )}</Dynamic>
         </Dynamic>
@@ -175,6 +175,7 @@ export const defaultsPlugins = [
   VirtualScrollPlugin(),
   // ExpandPlugin(),
   RowGroupPlugin(),
+  EditablePlugin()
 ]
 
 function BasePlugin(): Plugin {
@@ -186,7 +187,7 @@ function BasePlugin(): Plugin {
       trs: [],
       trSizes: toReactive(mapArray(() => store.trs, el => el && createElementSize(el))),
       // 
-      internal_col: Symbol('internal_col')
+      internal: Symbol('internal_col')
     }),
     processProps: {
       tbody: ({ tbody }) => tbody || 'tbody',
@@ -255,7 +256,7 @@ function BasePlugin(): Plugin {
 function IndexPlugin(): Plugin {
   return {
     store: (store) => ({
-      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal_col]: 1, width: 40, style: 'text-align: center', class: 'index', render: (_, i) => i + 1 }
+      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal]: 1, width: 40, style: 'text-align: center', class: 'index', render: (_, i) => i + 1 }
     }),
     processProps: {
       columns: (props, { store }) => props.index ? [store.$index, ...props.columns || []] : props.columns

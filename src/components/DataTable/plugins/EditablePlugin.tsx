@@ -1,4 +1,4 @@
-import { createMemo, createRoot, createSignal, mergeProps, onCleanup, useContext, type JSX } from 'solid-js'
+import { createEffect, createMemo, createRoot, createSignal, mergeProps, on, onCleanup, onMount, useContext, type JSX } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { Ctx, type Plugin, type TableColumn } from '../xxx'
@@ -54,8 +54,19 @@ export function EditablePlugin(): Plugin {
             return ret
           }
         })
+
+        createEffect(() => {
+          editorState()?.focus?.()
+        })
+
+        createEffect(() => {
+          if (editing()) {
+            const sss = createMemo(() => JSON.stringify(store.selected))
+            createEffect(on(sss, () => setEditing(false), { defer: true }))
+          }
+        })
         
-        o = combineProps(() => editing() ? { style: 'padding: 0' } : {}, { onDblClick: () => setEditing(true) }, o)
+        o = combineProps(() => editing() ? { style: 'padding: 0' } : {}, { onDblClick: () => o.data[store.internal] || o.col[store.internal] || setEditing(true) }, o)
         return (
           <Dynamic component={td} {...o}>
             {editorState()?.el || o.children}
@@ -66,10 +77,20 @@ export function EditablePlugin(): Plugin {
   }
 }
 
-const input: Editor = (props) => createRoot(destroy => {
+const input: Editor = ({ stopEditing, eventKey, value }) => createRoot(destroy => {
+  const [v, setV] = createSignal(eventKey || value)
+  const el: HTMLElement = <input
+    class='relative block size-full z-9 box-border resize-none'
+    value={v() || ''}
+    onInput={e => setV(e.target.value)}
+    onKeyDown={e => e.key == 'Enter' ? stopEditing() : e.key == 'Escape' ? (setV(value), stopEditing()) : void 0}
+    // onpointerdown={e => e.stopPropagation()}
+  />
+  
   return {
-    el: <input class='relative z-9 w-full h-full box-border bg-#00' value={props.value} onpointerdown={e => e.stopPropagation()} />,
-    getValue: () => 0,
-    destroy
+    el,
+    getValue: () => v(),
+    focus: () => el.focus(),
+    destroy,
   }
 })

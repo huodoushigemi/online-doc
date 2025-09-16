@@ -38,7 +38,7 @@ export function RowGroupPlugin(): Plugin {
 
         return (
           <Dynamic component={td} {...o}>
-            {props.columns?.findIndex(e => !e[store.internal_col]) == o.x ? (
+            {props.columns?.findIndex(e => !e[store.internal]) == o.x ? (
               <div class='flex aic' style={`padding-left: ${(o.data[symbol].path.length - 1) * 16}px`} onDblClick={() => store.rowGroup.toggleExpand(o.data)}>
                 <div class='icon-clickable mr-2' onClick={() => store.rowGroup.toggleExpand(o.data)}>
                   <ILucideChevronRight style={`transform: rotate(${show() ? 90 : 0}deg); opacity: .6`} />
@@ -63,7 +63,7 @@ const symbol = Symbol('row-group')
 const expandData = (data, store: TableStore, path = [] as any[]) => {
   const { expands } = store.rowGroup
   const fields = store.props!.rowGroup!.fields!
-  const col = store.props!.columns?.find(e => !e[store.internal_col])
+  const col = store.props!.columns?.find(e => !e[store.internal])
   if (!col) return data
   if (fields.length == path.length) return data
   const obj = groupBy(data, e => e[fields[path.length]])
@@ -72,6 +72,6 @@ const expandData = (data, store: TableStore, path = [] as any[]) => {
     const arr = expands.some(e => isEqual(ks, e))
       ? expandData(obj[k], store, ks)
       : []
-    return [{ [col.id]: k, [symbol]: { path: ks, value: k } }, ...arr]
+    return [{ [col.id]: k, [store.internal]: 1, [symbol]: { path: ks, value: k } }, ...arr]
   })
 }
