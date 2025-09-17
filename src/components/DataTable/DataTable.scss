@@ -2,7 +2,7 @@
   @apply relative table-fixed b-1 border-collapse outline-0;
 
   td, th {
-    @apply px-2 lh-[28px] outline-0 box-border;
+    @apply px-2 py-.5 lh-[28px] outline-0 box-border;
     text-align: inherit;
   }
 
