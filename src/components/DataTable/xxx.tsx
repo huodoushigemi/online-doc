@@ -174,7 +174,7 @@ export const defaultsPlugins = [
   PastePlugin(),
   VirtualScrollPlugin(),
   // ExpandPlugin(),
-  RowGroupPlugin(),
+  // RowGroupPlugin(),
   EditablePlugin()
 ]
 

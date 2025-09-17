@@ -61,11 +61,6 @@
   &::before { border-style: dashed; }
 }
 
-body {
-  height: 200vh;
-  width: 200vw;
-}
-
 // 
 .data-table.virtual { 
   @apply block of-auto w-fit;
@@ -76,4 +71,11 @@ body {
 
 .icon-clickable { 
   @apply flex justify-center items-center p-.5 w-5 h-5 box-border rd-1 hover:bg-gray/30 [&>svg]:(w-full h-full);
+}
+
+input[type="checkbox"].you-checkbox {
+  @apply grid place-content-center size-4 rd-1 c-#2196f3 b-(2 solid current) outline-offset--0 focus:outline-(4 solid #2196f3/40) cusor-pointer appearance-none checked:bg-current;
+  &:checked::after {
+    @apply content-["✓"] text-2 c-#fff relative z-1;
+  }
 }

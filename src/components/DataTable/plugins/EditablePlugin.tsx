@@ -2,6 +2,7 @@ import { createEffect, createMemo, createRoot, createSignal, mergeProps, on, onC
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { Ctx, type Plugin, type TableColumn } from '../xxx'
+import { log } from '../../../utils'
 
 declare module '../xxx' {
   interface TableProps {
@@ -27,8 +28,6 @@ export type Editor = (props: EditorProps) => {
 export interface EditorProps extends Record<any, any> {
   col: TableColumn
   data: any
-  x: number
-  y: number
   value: any
   eventKey?: string
   stopEditing: () => void
@@ -48,6 +47,7 @@ export function EditablePlugin(): Plugin {
         tel,
         password,
         file,
+        checkbox,
       }
     }),
     processProps: {
@@ -58,7 +58,7 @@ export function EditablePlugin(): Plugin {
         const editorState = createMemo(() => {
           if (editing()) {
             const editor = (editor => typeof editor == 'string' ? store.editors[editor] : editor)(o.col.editor || 'text')
-            const ret = editor(mergeProps(o, { value: props.data![o.y][o.col.id], stopEditing: () => setEditing(false) }))
+            const ret = editor({ col: o.col, data: o.data, value: props.data![o.y][o.col.id], stopEditing: () => setEditing(false) })
             onCleanup(() => {
               o.data[o.col.id] = ret.getValue()
               ret.destroy()
@@ -80,7 +80,7 @@ export function EditablePlugin(): Plugin {
         
         o = combineProps({
           get style() { return editing() ? `padding: 0; height: ${store.trSizes[o.y]?.height}px` : '' },
-          onDblClick: () => o.data[store.internal] || o.col[store.internal] || setEditing(!!o.col.editable)
+          onDblClick: () => setEditing(!!o.col.editable && !o.data[store.internal] && !o.col[store.internal])
         }, o)
         return (
           <Dynamic component={td} {...o}>
@@ -131,11 +131,10 @@ const password: Editor = (props) => BaseInput({ ...props, type: 'password'  })
 // todo
 const file: Editor = (props) => BaseInput({ ...props, type: 'file' })
 
-// todo
-const checkbox: Editor = ({ stopEditing, eventKey, value, col, ...attrs }) => createRoot(destroy => {
+const checkbox: Editor = ({ stopEditing, eventKey, value, col, data, ...attrs }) => createRoot(destroy => {
   const [v, setV] = createSignal(value)
   const el: HTMLElement = <input
-    class='relative block px-2 size-full z-9 box-border resize-none'
+    class='relative block mx-2 you-checkbox'
     checked={v() || false}
     onChange={e => setV(e.target.checked)}
     type='checkbox'
@@ -148,7 +147,7 @@ const checkbox: Editor = ({ stopEditing, eventKey, value, col, ...attrs }) => cr
   />
   
   return {
-    el,
+    el: <div class='h-full flex items-center' onPointerDown={() => el.focus()}>{el}</div>,
     getValue: () => v(),
     focus: () => el.focus(),
     destroy,
