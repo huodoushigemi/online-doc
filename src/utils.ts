@@ -8,14 +8,18 @@ export function file2base64(file: File) {
   })
 }
 
+export function chooseFile(opts: { accept?: string; multiple?: false }): Promise<File>
+export function chooseFile(opts: { accept?: string; multiple: true }): Promise<File[]>
+
 export function chooseFile(opts?) {
-  return new Promise<File>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = opts?.accept
+    input.multiple = opts?.multiple
     input.onchange = () => {
       if (input.files && input.files.length > 0) {
-        resolve(input.files[0])
+        resolve(input.multiple ? [...input.files] : input.files[0])
       } else {}
     }
     input.oncancel = reject

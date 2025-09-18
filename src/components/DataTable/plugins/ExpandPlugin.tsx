@@ -5,7 +5,6 @@ import { unwrap } from 'solid-js/store'
 import { combineProps } from '@solid-primitives/props'
 import { remove } from 'es-toolkit'
 import { Ctx, type Plugin, type TableStore } from '../xxx'
-import { log } from '../../../utils'
 
 declare module '../xxx' {
   interface TableProps {
@@ -29,7 +28,7 @@ export function ExpandPlugin(): Plugin {
         id: Symbol('expand'),
         fixed: 'left',
         width: 45,
-        render: (data, i) => <ArrowCell store={store} data={data} />,
+        render: (o) => <ArrowCell store={store} data={o.data} />,
         props: o => ({ onClick: () => store.toggleExpand(o.data) }),
         [store.internal]: 1
       },

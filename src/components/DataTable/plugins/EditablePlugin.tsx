@@ -1,9 +1,9 @@
 import { createEffect, createMemo, createRoot, createSignal, mergeProps, on, onCleanup, onMount, useContext, type JSX } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
+import { chooseFile, log } from '@/utils'
 import { Ctx, type Plugin, type TableColumn } from '../xxx'
-import { log } from '../../../utils'
-import { Checkbox } from './RenderPlugin/components'
+import { Checkbox, Files } from './RenderPlugin/components'
 
 declare module '../xxx' {
   interface TableProps {
@@ -86,7 +86,7 @@ export function EditablePlugin(): Plugin {
         return (
           <Dynamic component={td} {...o}>
             {editorState()?.el
-              ? <div style={`height: 100%; box-sizing: border-box; padding: 0`}>{editorState()?.el}</div>
+              ? <div style={`height: 100%; box-sizing: border-box; padding: 0;`}>{editorState()?.el}</div>
               : o.children
             }
           </Dynamic>
@@ -120,7 +120,7 @@ const BaseInput: Editor = ({ stopEditing, eventKey, value, col, ...attrs }) => c
 
 const text = BaseInput
 
-const number: Editor = (props) => BaseInput({ ...props, type: 'number'  })
+const number: Editor = (props) => BaseInput({ ...props, type: 'number' })
 const range: Editor = (props) => BaseInput({ ...props, type: 'range'  })
 const date: Editor = (props) => BaseInput({ ...props, type: 'date'  })
 const time: Editor = (props) => BaseInput({ ...props, type: 'time'  })
@@ -129,25 +129,38 @@ const color: Editor = (props) => BaseInput({ ...props, type: 'color'  })
 const tel: Editor = (props) => BaseInput({ ...props, type: 'tel'  })
 const password: Editor = (props) => BaseInput({ ...props, type: 'password'  })
 
-// todo
-const file: Editor = (props) => BaseInput({ ...props, type: 'file' })
+const file: Editor = (props) => createRoot(destroy => {
+  const toarr = v => Array.isArray(v) ? v : (v != null ? [v] : [])
+  const [v, setV] = createSignal(toarr(props.value))
+  const onAdd = () => chooseFile({ multiple: true }).then(files => setV(v => [...v, ...files.map(e => ({ name: e.name, size: e.size }))]))
+  return {
+    el: <Files class='relative z-9 outline-(2 blue) min-h-a! h-a! p-1 bg-#fff' value={v()} onChange={setV} onAdd={onAdd} />,
+    getValue: v,
+    destroy
+  }
+})
 
 const checkbox: Editor = ({ stopEditing, eventKey, value, col, data, ...attrs }) => createRoot(destroy => {
   const [v, setV] = createSignal(value)
-  const el: HTMLElement = <Checkbox
-    class='mx-2'
-    value={v() || false}
-    onChange={setV}
-    on:pointerdown={e => e.stopPropagation()}
-    on:keydown={e => {
-      e.key == 'Enter' ? stopEditing() : e.key == 'Escape' ? (setV(value), stopEditing()) : void 0
-    }}
-    {...attrs}
-  />
+  let el: HTMLElement
   
   return {
-    el: <div class='h-full flex items-center' onPointerDown={() => el.focus()}>{el}</div>,
-    getValue: () => v(),
+    el: (
+      <div class='h-full flex items-center' onPointerDown={() => el.focus()}>
+        <Checkbox
+          ref={el}
+          class='mx-2'
+          value={v()}
+          onChange={setV}
+          on:pointerdown={e => e.stopPropagation()}
+          on:keydown={e => {
+            e.key == 'Enter' ? stopEditing() : e.key == 'Escape' ? (setV(value), stopEditing()) : void 0
+          }}
+          {...attrs}
+        />
+      </div>
+    ),
+    getValue: v,
     focus: () => el.focus(),
     destroy,
   }

@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import solid from 'vite-plugin-solid'
+import path from 'path'
 
 export default defineConfig({
   base: './',
@@ -7,11 +8,15 @@ export default defineConfig({
     outDir: 'docs',
     assetsDir: './',
   },
+  resolve: {
+    alias: { '@': path.resolve(__dirname, 'src') }
+  },
   plugins: [
-    solid(),
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('ts'), 
     (await import('babel-plugin-solid-undestructure')).undestructurePlugin('vanilla-js'),
     { load: (id) => id.includes('undestructure-macros') ? '' : null },
+
+    solid(),
     
     (await import('unocss/vite')).default({
       content: {

@@ -17,6 +17,7 @@ import { ExpandPlugin } from './plugins/ExpandPlugin'
 import { component } from 'undestructure-macros'
 import { RowGroupPlugin } from './plugins/RowGroupPlugin'
 import { EditablePlugin } from './plugins/EditablePlugin'
+import { RenderPlugin } from './plugins/RenderPlugin'
 
 export const Ctx = createContext({
   props: {} as TableProps
@@ -40,14 +41,14 @@ export interface TableProps {
   class: any
   style: any
   // Component
-  td?: string | Component<{ x: number; y: number; data: any; col: TableColumn; children: JSX.Element }>
+  td?: string | TD
   th?: string | Component<{ x: number; col: TableColumn; children: JSX.Element }>
   tr?: string | Component<{ y?: number; data?: any; children: JSX.Element }>
   thead?: string | Component<any>
   tbody?: string | Component<any>
   table?: string | Component<any>
   EachRows?: typeof For
-  EachCells?: typeof For
+  EachCells?: typeof For<TableColumn[], JSX.Element>
   // 
   thProps?: (props) => JSX.HTMLAttributes<any> | void
   tdProps?: (props) => JSX.HTMLAttributes<any> | void
@@ -56,6 +57,8 @@ export interface TableProps {
   plugins?: Plugin[]
 }
 
+export type TD = Component<{ x: number; y: number; data: any; col: TableColumn; children: JSX.Element }>
+
 type Obj = Record<string | symbol, any>
 
 export interface TableColumn extends Obj {
@@ -63,7 +66,7 @@ export interface TableColumn extends Obj {
   name?: string
   width?: number
   fixed?: 'left' | 'right'
-  render?: (data: any, index: number) => JSXElement
+  // render?: (data: any, index: number) => JSXElement
   class?: any
   style?: any
   props?: (props) => JSX.HTMLAttributes<any>
@@ -152,7 +155,7 @@ const TBody = () => {
         <Dynamic component={props.tr || 'tr'} y={rowIndex()} data={row}>
           <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
             <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
-              {col.render ? col.render(row, rowIndex()) : row[col.id]}
+              {row[col.id]}
             </Dynamic>
           )}</Dynamic>
         </Dynamic>
@@ -165,6 +168,7 @@ const TBody = () => {
 
 export const defaultsPlugins = [
   BasePlugin(),
+  RenderPlugin(),
   IndexPlugin(),
   StickyHeaderPlugin(),
   FixedColumnPlugin(),
@@ -256,7 +260,7 @@ function BasePlugin(): Plugin {
 function IndexPlugin(): Plugin {
   return {
     store: (store) => ({
-      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal]: 1, width: 40, style: 'text-align: center', class: 'index', render: (_, i) => i + 1 }
+      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal]: 1, width: 40, style: 'text-align: center', class: 'index', render: (o) => o.y + 1 } as TableColumn
     }),
     processProps: {
       columns: (props, { store }) => props.index ? [store.$index, ...props.columns || []] : props.columns

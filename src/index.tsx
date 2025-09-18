@@ -32,7 +32,7 @@ data().forEach((e, i) => e.n = i % 3)
 
 // cols[2].fixed = 'left'
 cols[0].editable = true
-cols[0].editor = 'checkbox'
+cols[0].editor = 'file'
 
 render(() => <Table
   // {...window.www}
