@@ -3,6 +3,7 @@ import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { Ctx, type Plugin, type TableColumn } from '../xxx'
 import { log } from '../../../utils'
+import { Checkbox } from './RenderPlugin/components'
 
 declare module '../xxx' {
   interface TableProps {
@@ -133,14 +134,12 @@ const file: Editor = (props) => BaseInput({ ...props, type: 'file' })
 
 const checkbox: Editor = ({ stopEditing, eventKey, value, col, data, ...attrs }) => createRoot(destroy => {
   const [v, setV] = createSignal(value)
-  const el: HTMLElement = <input
-    class='relative block mx-2 you-checkbox'
-    checked={v() || false}
-    onChange={e => setV(e.target.checked)}
-    type='checkbox'
+  const el: HTMLElement = <Checkbox
+    class='mx-2'
+    value={v() || false}
+    onChange={setV}
     on:pointerdown={e => e.stopPropagation()}
     on:keydown={e => {
-      e.stopPropagation()
       e.key == 'Enter' ? stopEditing() : e.key == 'Escape' ? (setV(value), stopEditing()) : void 0
     }}
     {...attrs}
