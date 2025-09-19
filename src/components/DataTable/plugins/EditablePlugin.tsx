@@ -52,7 +52,7 @@ export function EditablePlugin(): Plugin {
       }
     }),
     processProps: {
-      td: ({ td }, { store }) => o => {
+      Td: ({ Td }, { store }) => o => {
         const { props } = useContext(Ctx)
         const [editing, setEditing] = createSignal(false)
 
@@ -84,12 +84,12 @@ export function EditablePlugin(): Plugin {
           onDblClick: () => setEditing(!!o.col.editable && !o.data[store.internal] && !o.col[store.internal])
         }, o)
         return (
-          <Dynamic component={td} {...o}>
+          <Td {...o}>
             {editorState()?.el
               ? <div style={`height: 100%; box-sizing: border-box; padding: 0;`}>{editorState()?.el}</div>
               : o.children
             }
-          </Dynamic>
+          </Td>
         )
       }
     }

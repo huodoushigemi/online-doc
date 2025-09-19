@@ -1,5 +1,5 @@
-import { clamp, difference, isEqual, mapValues, omit, sumBy } from 'es-toolkit'
-import { createContext, createMemo, createSignal, For, useContext, type JSXElement, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, children } from 'solid-js'
+import { clamp, difference, identity, isEqual, mapValues, sumBy } from 'es-toolkit'
+import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, children } from 'solid-js'
 import { createMutable } from 'solid-js/store'
 import { Dynamic, memo, Portal } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
@@ -23,11 +23,15 @@ export const Ctx = createContext({
   props: {} as TableProps
 })
 
+type Requireds<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
+type TableProps2 = Requireds<TableProps, 'Table' | 'Thead' | 'Tbody' | 'Tr' | 'Th' | 'Td' | 'EachRows' | 'EachCells'>
+
 type ProcessProps = {
-  [K in keyof TableProps]?: (props: TableProps, ctx: { store: TableStore }) => TableProps[K]
+  [K in keyof TableProps]?: (props: TableProps2, ctx: { store: TableStore }) => TableProps[K]
 }
 
 export type Plugin = {
+  priority?: number
   store?: (store: TableStore) => Partial<TableStore>
   processProps?: ProcessProps
 }
@@ -41,12 +45,12 @@ export interface TableProps {
   class: any
   style: any
   // Component
-  td?: string | TD
-  th?: string | Component<{ x: number; col: TableColumn; children: JSX.Element }>
-  tr?: string | Component<{ y?: number; data?: any; children: JSX.Element }>
-  thead?: string | Component<any>
-  tbody?: string | Component<any>
-  table?: string | Component<any>
+  Table?: Component<any>
+  Thead?: Component<any>
+  Tbody?: Component<any>
+  Td?: TD
+  Th?: Component<{ x: number; col: TableColumn; children: JSX.Element }>
+  Tr?: Component<{ y?: number; data?: any; children: JSX.Element }>
   EachRows?: typeof For
   EachCells?: typeof For<TableColumn[], JSX.Element>
   // 
@@ -85,7 +89,7 @@ export interface TableStore extends Obj {
 }
 
 export const Table = (props: TableProps) => {
-  const plugins = createMemo(() => [...defaultsPlugins, ...props.plugins || []])
+  const plugins = createMemo(() => [...defaultsPlugins, ...props.plugins || []].sort((a, b) => (b.priority || 0) - (a.priority || 0)))
 
   const pluginsProps = mapArray(plugins, () => createSignal<Partial<TableProps>>({}))
   
@@ -113,17 +117,13 @@ export const Table = (props: TableProps) => {
   }, [])
 
   const ctx = createMutable({ x: 0, props: mProps })
-
+  
   window.store = store
   window.ctx = ctx
 
-  // createEffect(() => {
-  //   console.log(JSON.parse(JSON.stringify(ctx.props.data)))
-  // })
-
   return (
     <Ctx.Provider value={ctx}>
-      <Dynamic component={ctx.props.table || 'table'}>
+      <Dynamic component={ctx.props.Table || 'table'}>
         <colgroup>
           <For each={ctx.props.columns}>{e => <col style={`width: ${e.width}px`} />}</For>
         </colgroup>
@@ -137,10 +137,10 @@ export const Table = (props: TableProps) => {
 const THead = () => {
   const { props } = useContext(Ctx)
   return (
-    <Dynamic component={props.thead || 'thead'}>
-      <Dynamic component={props.tr || 'tr'}>
+    <Dynamic component={props.Thead || 'thead'}>
+      <Dynamic component={props.Tr || 'tr'}>
         <Dynamic component={props.EachCells || For} each={props.columns || []}>
-          {(col, colIndex) => <Dynamic component={props.th || 'th'} col={col} x={colIndex()}>{col.name}</Dynamic>}
+          {(col, colIndex) => <Dynamic component={props.Th || 'th'} col={col} x={colIndex()}>{col.name}</Dynamic>}
         </Dynamic>
       </Dynamic>
     </Dynamic>
@@ -150,11 +150,11 @@ const THead = () => {
 const TBody = () => {
   const { props } = useContext(Ctx)
   return (
-    <Dynamic component={props.tbody || 'tbody'}>
+    <Dynamic component={props.Tbody || 'tbody'}>
       <Dynamic component={props.EachRows || For} each={props.data}>{(row, rowIndex) => (
-        <Dynamic component={props.tr || 'tr'} y={rowIndex()} data={row}>
+        <Dynamic component={props.Tr || 'tr'} y={rowIndex()} data={row}>
           <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
-            <Dynamic component={props.td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
+            <Dynamic component={props.Td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
               {row[col.id]}
             </Dynamic>
           )}</Dynamic>
@@ -184,6 +184,14 @@ export const defaultsPlugins = [
 
 function BasePlugin(): Plugin {
   const omits = { col: null, data: null }
+
+  const tbody = o => <tbody {...o} /> as any
+  const thead = o => <thead {...o} /> as any
+  const table = o => <table {...o} /> as any
+  const tr = o => <tr {...o} /> as any
+  const th = o => <th {...o} /> as any
+  const td = o => <td {...o} /> as any
+
   return {
     store: (store) => ({
       ths: [],
@@ -194,19 +202,17 @@ function BasePlugin(): Plugin {
       internal: Symbol('internal_col')
     }),
     processProps: {
-      tbody: ({ tbody }) => tbody || 'tbody',
-      thead: ({ thead }) => thead || 'thead',
-      table: ({ table }) => o => {
+      Tbody: ({ Tbody = tbody }) => Tbody,
+      Thead: ({ Thead = thead }) => Thead,
+      Table: ({ Table = table }) => o => {
         const { props } = useContext(Ctx)
         o = combineProps(() => ({
           class: `data-table ${props.class} ${props.border && 'data-table--border'}`,
           style: props.style
         }), o)
-        return (
-          <Dynamic component={table || 'table'} {...o} />
-        )
+        return <Table {...o} />
       },
-      tr: ({ tr }, { store }) => component(({ data, ...o }) => {
+      Tr: ({ Tr = tr }, { store }) => component(({ data, ...o }) => {
         const [el, setEl] = createSignal<HTMLElement>()
         o = combineProps({ ref: setEl }, o)
 
@@ -216,9 +222,9 @@ function BasePlugin(): Plugin {
           onCleanup(() => store.trs[y] = void 0)
         })
 
-        return <Dynamic component={tr || 'tr'} {...o} />
+        return <Tr {...o} />
       }),
-      th: ({ th }, { store }) => o => {
+      Th: ({ Th = th }, { store }) => o => {
         const [el, setEl] = createSignal<HTMLElement>()
         
         const { props } = useContext(Ctx)
@@ -237,9 +243,9 @@ function BasePlugin(): Plugin {
           onCleanup(() => store.ths[x] = void 0)
         })
         
-        return <Dynamic component={th || 'th'} {...mProps}>{o.children}</Dynamic>
+        return <Th {...mProps}>{o.children}</Th>
       },
-      td: ({ td }, { store }) => o => {
+      Td: ({ Td = td }, { store }) => o => {
         const { props } = useContext(Ctx)
         const mProps = combineProps(
           o,
@@ -249,7 +255,7 @@ function BasePlugin(): Plugin {
           createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
           omits
         )
-        return <Dynamic component={td || 'td'} {...mProps}>{o.children}</Dynamic>
+        return <Td {...mProps}>{o.children}</Td>
       },
       EachRows: ({ EachRows }) => EachRows || For,
       EachCells: ({ EachCells }) => EachCells || For
@@ -271,10 +277,10 @@ function IndexPlugin(): Plugin {
 function StickyHeaderPlugin(): Plugin {
   return {
     processProps: {
-      thead: ({ thead }) => o => {
+      Thead: ({ Thead }) => o => {
         const { props } = useContext(Ctx)
         o = combineProps(() => props.stickyHeader ? { class: 'sticky-header' } : {}, o)
-        return <Dynamic component={thead} {...o} />
+        return <Thead {...o} />
       },
     }
   }
@@ -303,13 +309,13 @@ function FixedColumnPlugin(): Plugin {
 function ResizePlugin(): Plugin {
   return {
     processProps: {
-      thead: ({ thead }, { store }) => (o) => {
+      Thead: ({ Thead }, { store }) => (o) => {
         let theadEl: HTMLElement
 
         const { props } = useContext(Ctx)
 
         onMount(() => {
-          useSplit({ container: theadEl, cells: () => store.ths, size: 8, handle: i => <Handle i={i} /> })
+          useSplit({ container: theadEl, cells: () => store.ths.filter(identity), size: 8, handle: i => <Handle i={i} /> })
         })
 
         const Handle: Component = ({ i }) => {
@@ -327,7 +333,7 @@ function ResizePlugin(): Plugin {
         }
 
         o = combineProps({ ref: e => theadEl = e }, o)
-        return <Dynamic component={thead} {...o} />
+        return <Thead {...o} />
       },
     }
   }

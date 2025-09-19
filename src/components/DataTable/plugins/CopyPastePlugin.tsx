@@ -10,7 +10,7 @@ import { log } from '../../../utils'
 export function CopyPlugin(): Plugin {
   return {
     processProps: {
-      table: ({ table }, { store }) => component(({ children, ...props }) => {
+      Table: ({ Table }, { store }) => component(({ children, ...props }) => {
         let el: HTMLElement
         const ctx = useContext(Ctx)
 
@@ -40,9 +40,9 @@ export function CopyPlugin(): Plugin {
         })
 
         return (
-          <Dynamic component={table} tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
+          <Table tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
             {children}
-          </Dynamic>
+          </Table>
         )
       })
     }
@@ -52,7 +52,7 @@ export function CopyPlugin(): Plugin {
 export function PastePlugin(): Plugin {
   return {
     processProps: {
-      table: ({ table }, { store }) => component(({ children, ...props }) => {
+      Table: ({ Table }, { store }) => component(({ children, ...props }) => {
         let el: HTMLElement
         const ctx = useContext(Ctx)
 
@@ -77,9 +77,9 @@ export function PastePlugin(): Plugin {
         })
         
         return (
-          <Dynamic component={table} tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
+          <Table tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
             {children}
-          </Dynamic>
+          </Table>
         )
       })
     }

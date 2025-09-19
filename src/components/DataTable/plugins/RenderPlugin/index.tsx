@@ -22,6 +22,7 @@ export type Render = (props: Parameters<TD>[0] & { onChange?: (v) => void }) => 
 
 export function RenderPlugin(): Plugin {
   return {
+    priority: -Infinity,
     store: () => ({
       renders: {
         text,
@@ -32,14 +33,14 @@ export function RenderPlugin(): Plugin {
       }
     }),
     processProps: {
-      td: ({ td }, { store }) => o => {
+      Td: ({ Td }, { store }) => o => {
         return (
-          <Dynamic component={td} {...o}>
+          <Td {...o}>
             {(() => {
               const Comp = (e => typeof e == 'string' ? store.renders[e] : e)(o.col.render) || text
-              return o.children ?? <Comp {...o} />
+              return <Comp {...o} />
             })()}
-          </Dynamic>
+          </Td>
         )
       }
     }

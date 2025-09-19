@@ -20,7 +20,7 @@ declare module '../xxx' {
 export function VirtualScrollPlugin(): Plugin {
   return {
     processProps: {
-      table: ({ table }, { store }) => (o) => {
+      Table: ({ Table }, { store }) => (o) => {
         let el: HTMLElement
 
         const { props } = useContext(Ctx)
@@ -64,38 +64,38 @@ export function VirtualScrollPlugin(): Plugin {
         o = combineProps({ ref: e => el = e, class: 'virtual' }, o)
 
         return (
-          <Dynamic component={table} {...o}>
+          <Table {...o}>
             {o.children}
             <div style={`position: absolute; top: 0; width: ${store.virtualizerX.getTotalSize()}px; height: ${store.virtualizerY.getTotalSize()}px; z-index: -1`} />
-          </Dynamic>
+          </Table>
         )
       },
-      td: ({ td }, { store }) => (o) => {
+      Td: ({ Td }, { store }) => (o) => {
         const ml = createMemo(() => store[$ML]()[o.x])
         const mo = combineProps({ get style() { return `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` } }, o)
-        return <Dynamic component={td} {...mo} />
+        return <Td {...mo} />
       },
-      th: ({ th }, { store }) => (o) => {
+      Th: ({ Th }, { store }) => (o) => {
         const ml = createMemo(() => store[$ML]?.()[o.x])
         o = combineProps(() => ({ style: `width: ${o.col.width || 80}px; margin-left: ${ml()?.offset}px` }), o)
         createEffect(() => store.thSizes[o.x] && store.virtualizerX.resizeItem(o.y, store.thSizes[o.x]!.width))
-        return <Dynamic component={th} {...o} />
+        return <Th {...o} />
       },
-      tr: ({ tr }, { store }) => (o) => {
+      Tr: ({ Tr }, { store }) => (o) => {
         createEffect(() => store.trSizes[o.y] && store.virtualizerY.resizeItem(o.y, store.trSizes[o.y]!.height))
-        return <Dynamic component={tr} {...o} />
+        return <Tr {...o} />
       },
-      thead: ({ thead }, { store }) => o => {
+      Thead: ({ Thead }, { store }) => o => {
         o = combineProps(() => ({
           style: `transform: translate(${store.virtualizerX.getVirtualItems()[0]?.start}px, ${0}px);`
         }), o)
-        return <Dynamic component={thead} {...o} />
+        return <Thead {...o} />
       },
-      tbody: ({ tbody }, { store }) => o => {
+      Tbody: ({ Tbody }, { store }) => o => {
         o = combineProps(() => ({
           style: `transform: translate(${store.virtualizerX.getVirtualItems()[0]?.start}px, ${store.virtualizerY.getVirtualItems()[0]?.start}px);`
         }), o)
-        return <Dynamic component={tbody} {...o} />
+        return <Tbody {...o} />
       },
       // tr: ({ tr }, { store }) => (o) => {
       //   let el

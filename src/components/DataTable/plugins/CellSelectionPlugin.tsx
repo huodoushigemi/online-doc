@@ -29,7 +29,7 @@ export function CellSelectionPlugin(): Plugin {
         const inx = inrange(o.x, ...[start[0], end[0]].sort((a, b) => a - b))
         return combineProps(thProps?.(o) || {}, { class: inx ? 'col-range-highlight' : '' })
       },
-      td: ({ td }, { store }) => (o) => {
+      Td: ({ Td }, { store }) => (o) => {
         const clazz = createMemo(() => {
           const { start, end } = store.selected
           let clazz = ''
@@ -49,9 +49,9 @@ export function CellSelectionPlugin(): Plugin {
         })
         
         const mergedProps = combineProps(o, { get class() { return clazz() }, tabindex: -1 })
-        return <Dynamic component={td} {...mergedProps} />
+        return <Td {...mergedProps} />
       },
-      table: ({ table }, { store }) => (o) => {
+      Table: ({ Table }, { store }) => (o) => {
         let el: HTMLElement
         const { props } = useContext(Ctx)
         
@@ -138,7 +138,7 @@ export function CellSelectionPlugin(): Plugin {
 
         o = combineProps(o, { ref: e => el = e })
         
-        return <Dynamic component={table} {...o} />
+        return <Table {...o} />
       }
     }
   }

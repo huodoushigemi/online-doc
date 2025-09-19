@@ -40,15 +40,15 @@ export function ExpandPlugin(): Plugin {
         store.expandCol,
         ...columns!
       ],
-      tr: ({ tr }, { store }) => o => {
+      Tr: ({ Tr }, { store }) => o => {
         const { props } = useContext(Ctx)
         const flag = o.data?.[store.expandCol.id]
-        if (!flag) return <Dynamic component={tr} {...o} />
+        if (!flag) return <Tr {...o} />
 
         return (
-          <Dynamic component={tr} {...o}>
+          <Tr {...o}>
             <td colspan={props.columns?.length} style='width: 100%'>{props.expand?.render?.(o)}</td>
-          </Dynamic>
+          </Tr>
         )
 
         // const show = createMemo(() => store.isExpand(o.data))

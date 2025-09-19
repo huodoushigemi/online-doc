@@ -30,23 +30,21 @@ export function RowGroupPlugin(): Plugin {
       }
     }),
     processProps: {
-      td: ({ td }, { store }) => o => {
-        if (!o.data?.[symbol]) return <Dynamic component={td} {...o} />
+      Td: ({ Td }, { store }) => o => {
+        if (!o.data?.[symbol]) return <Td {...o} />
         
         const { props } = useContext(Ctx)
         const show = createMemo(() => store.rowGroup.isExpand(o.data))
 
         return (
-          <Dynamic component={td} {...o}>
+          <Td {...o}>
             {props.columns?.findIndex(e => !e[store.internal]) == o.x ? (
-              <div class='flex aic' style={`padding-left: ${(o.data[symbol].path.length - 1) * 16}px`} onDblClick={() => store.rowGroup.toggleExpand(o.data)}>
-                <div class='icon-clickable mr-2' onClick={() => store.rowGroup.toggleExpand(o.data)}>
-                  <ILucideChevronRight style={`transform: rotate(${show() ? 90 : 0}deg); opacity: .6`} />
-                </div>
+              <div class='flex items-center' style={`padding-left: ${(o.data[symbol].path.length - 1) * 16}px`} onDblClick={() => store.rowGroup.toggleExpand(o.data)}>
+                <ILucideChevronRight class='icon-clickable mr-2' style={`transform: rotate(${show() ? 90 : 0}deg); opacity: .6`} onClick={() => store.rowGroup.toggleExpand(o.data)} />
                 {o.data[symbol].value}
               </div>
             ) : o.children}
-          </Dynamic>
+          </Td>
         )
       },
       data: ({ data }, { store }) => (
