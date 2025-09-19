@@ -5,7 +5,7 @@ import { combineProps } from '@solid-primitives/props'
 export const Checkbox = component(({ value, onChange, ...props }) => {
   props = combineProps({ class: 'you-checkbox' }, props)
   return (
-    <input checked={value || false} onChange={(e) => onChange(e.currentTarget.checked)} type="checkbox" {...props} />
+    <input checked={value || false} onChange={(e) => onChange?.(e.currentTarget.checked)} type="checkbox" {...props} />
   )
 })
 
@@ -17,10 +17,11 @@ export const Files = component(({ ...props }) => {
 
 export const Tags = component(({ value, children, disabled, onChange, onAdd, ...props }) => { 
   props = combineProps({ class: 'flex flex-wrap items-center gap-2 h-full' }, props)
+  const toarr = v => Array.isArray(v) ? v : (v != null ? [v] : [])
   return (
     <div {...props}>
-      <For each={value}>{e => (
-        <Tag style={`background: ${e.color}`} disabled={disabled} onDel={() => onChange(value.filter(e2 => e2 != e))}>
+      <For each={toarr(value)}>{e => (
+        <Tag style={`background: ${e.color}`} disabled={disabled} onDel={() => onChange(toarr(value).filter(e2 => e2 != e))}>
           {children ? children(e) : (e?.text ?? e?.label ?? e?.name ?? e)}
         </Tag>
       )}</For>

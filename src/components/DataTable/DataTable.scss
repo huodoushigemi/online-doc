@@ -74,8 +74,8 @@
 }
 
 input[type="checkbox"].you-checkbox {
-  @apply grid place-content-center size-4 rd-1 c-#2196f3 b-(2 solid current) outline-offset--0 focus:outline-(4 solid #2196f3/40) cusor-pointer appearance-none checked:bg-current;
+  @apply relative size-4 m-1 rd-1 c-#2196f3 b-(2 solid current) outline-offset--0 focus:outline-(4 solid #2196f3/40) cusor-pointer appearance-none checked:bg-current;
   &:checked::after {
-    @apply content-["✓"] text-3 c-#fff relative z-1;
+    @apply content-["✓"] absolute top-50% left-50% translate--50% text-3 c-#fff z-1;
   }
 }

@@ -1,4 +1,4 @@
-import { createEffect, createMemo, onMount, useContext } from 'solid-js'
+import { createEffect, createMemo, useContext } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { createVirtualizer, defaultRangeExtractor, Virtualizer } from '@tanstack/solid-virtual'
@@ -113,21 +113,21 @@ export function VirtualScrollPlugin(): Plugin {
       EachRows: ({ EachRows }, { store }) => (o) => {
         const list = createMemo(() => store.virtualizerY.getVirtualItems().map(e => o.each[e.index]))
         return (
-          <Dynamic component={EachRows} {...o} each={list()}>
+          <EachRows {...o} each={list()}>
             {(e, i) => {
-              return o.children(e, createMemo(() => store.virtualizerY.getVirtualItems()[i()].index))
+              return o.children(e, createMemo(() => store.virtualizerY.getVirtualItems()[i()]?.index))
             }}
-          </Dynamic>
+          </EachRows>
         )
       },
       EachCells: ({ EachCells }, { store }) => (o) => {
         const list = createMemo(() => store.virtualizerX.getVirtualItems().map(e => o.each[e.index]))
         return (
-          <Dynamic component={EachCells} {...o} each={list()}>
+          <EachCells {...o} each={list()}>
             {(e, i) => {
-              return o.children(e, createMemo(() => store.virtualizerX.getVirtualItems()[i()].index))
+              return o.children(e, createMemo(() => store.virtualizerX.getVirtualItems()[i()]?.index))
             }}
-          </Dynamic>
+          </EachCells>
         )
       },
     }

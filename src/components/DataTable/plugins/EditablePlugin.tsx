@@ -130,8 +130,7 @@ const tel: Editor = (props) => BaseInput({ ...props, type: 'tel'  })
 const password: Editor = (props) => BaseInput({ ...props, type: 'password'  })
 
 const file: Editor = (props) => createRoot(destroy => {
-  const toarr = v => Array.isArray(v) ? v : (v != null ? [v] : [])
-  const [v, setV] = createSignal(toarr(props.value))
+  const [v, setV] = createSignal(props.value)
   const onAdd = () => chooseFile({ multiple: true }).then(files => setV(v => [...v, ...files.map(e => ({ name: e.name, size: e.size }))]))
   return {
     el: <Files class='relative z-9 outline-(2 blue) min-h-a! h-a! p-1 bg-#fff' value={v()} onChange={setV} onAdd={onAdd} />,
@@ -149,7 +148,7 @@ const checkbox: Editor = ({ stopEditing, eventKey, value, col, data, ...attrs })
       <div class='h-full flex items-center' onPointerDown={() => el.focus()}>
         <Checkbox
           ref={el}
-          class='mx-2'
+          class='mx-3!'
           value={v()}
           onChange={setV}
           on:pointerdown={e => e.stopPropagation()}
