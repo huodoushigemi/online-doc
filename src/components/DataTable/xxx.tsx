@@ -1,7 +1,6 @@
 import { clamp, difference, identity, isEqual, mapValues, sumBy } from 'es-toolkit'
-import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, children } from 'solid-js'
+import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup } from 'solid-js'
 import { createMutable } from 'solid-js/store'
-import { Dynamic, memo, Portal } from 'solid-js/web'
 import { combineProps } from '@solid-primitives/props'
 import { toReactive, useMemo, usePointerDrag } from '../../hooks'
 import { useSplit } from '../Split'
@@ -14,13 +13,12 @@ import { CellSelectionPlugin } from './plugins/CellSelectionPlugin'
 import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
 import { VirtualScrollPlugin } from './plugins/VirtualScrollPlugin'
 import { ExpandPlugin } from './plugins/ExpandPlugin'
-import { component } from 'undestructure-macros'
 import { RowGroupPlugin } from './plugins/RowGroupPlugin'
 import { EditablePlugin } from './plugins/EditablePlugin'
 import { RenderPlugin } from './plugins/RenderPlugin'
 
 export const Ctx = createContext({
-  props: {} as TableProps
+  props: {} as TableProps2
 })
 
 type Requireds<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
@@ -92,8 +90,16 @@ export const Table = (props: TableProps) => {
   const plugins = createMemo(() => [...defaultsPlugins, ...props.plugins || []].sort((a, b) => (b.priority || 0) - (a.priority || 0)))
 
   const pluginsProps = mapArray(plugins, () => createSignal<Partial<TableProps>>({}))
+
+  const store = createMutable({}) as TableStore
+
+  createComputed((old: Plugin[]) => {
+    const added = difference(plugins(), old)
+    added.forEach(e => Object.assign(store, e.store?.(store)))
+    return plugins()
+  }, [])
   
-  createEffect(mapArray(plugins, (e, i) => {
+  createComputed(mapArray(plugins, (e, i) => {
     // const prev = toReactive(createMemo(() => pluginsProps()[i() - 1]?.[0]() || props))
     const prev = createMemo(() => pluginsProps()[i() - 1]?.[0]() || props)
 
@@ -101,20 +107,9 @@ export const Table = (props: TableProps) => {
 
     pluginsProps()[i()][1](ret)
   }))
-
-  mapArray(createMemo(() => Object.keys(props)), k => {
-    plugins().reduce((o, e, i) => {}, props[k])
-  })
   
-  const store = createMutable({}) as TableStore
-  const mProps = toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) as TableProps
+  const mProps = toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) as TableProps2
   store.props = mProps
-
-  createComputed((old: Plugin[]) => {
-    const added = difference(plugins(), old)
-    added.forEach(e => Object.assign(store, e.store?.(store)))
-    return plugins()
-  }, [])
 
   const ctx = createMutable({ x: 0, props: mProps })
   
@@ -123,13 +118,13 @@ export const Table = (props: TableProps) => {
 
   return (
     <Ctx.Provider value={ctx}>
-      <Dynamic component={ctx.props.Table || 'table'}>
+      <ctx.props.Table>
         <colgroup>
           <For each={ctx.props.columns}>{e => <col style={`width: ${e.width}px`} />}</For>
         </colgroup>
         <THead />
         <TBody />
-      </Dynamic>
+      </ctx.props.Table>
     </Ctx.Provider>
   )
 }
@@ -137,69 +132,54 @@ export const Table = (props: TableProps) => {
 const THead = () => {
   const { props } = useContext(Ctx)
   return (
-    <Dynamic component={props.Thead || 'thead'}>
-      <Dynamic component={props.Tr || 'tr'}>
-        <Dynamic component={props.EachCells || For} each={props.columns || []}>
-          {(col, colIndex) => <Dynamic component={props.Th || 'th'} col={col} x={colIndex()}>{col.name}</Dynamic>}
-        </Dynamic>
-      </Dynamic>
-    </Dynamic>
+    <props.Thead>
+      <props.Tr>
+        <props.EachCells each={props.columns || []}>
+          {(col, colIndex) => <props.Th col={col} x={colIndex()}>{col.name}</props.Th>}
+        </props.EachCells>
+      </props.Tr>
+    </props.Thead>
   )
 }
 
 const TBody = () => {
   const { props } = useContext(Ctx)
   return (
-    <Dynamic component={props.Tbody || 'tbody'}>
-      <Dynamic component={props.EachRows || For} each={props.data}>{(row, rowIndex) => (
-        <Dynamic component={props.Tr || 'tr'} y={rowIndex()} data={row}>
-          <Dynamic component={props.EachCells || For} each={props.columns}>{(col, colIndex) => (
-            <Dynamic component={props.Td || 'td'} col={col} x={colIndex()} y={rowIndex()} data={row}>
+    <props.Tbody>
+      <props.EachRows each={props.data}>{(row, rowIndex) => (
+        <props.Tr y={rowIndex()} data={row}>
+          <props.EachCells each={props.columns}>{(col, colIndex) => (
+            <props.Td col={col} x={colIndex()} y={rowIndex()} data={row}>
               {row[col.id]}
-            </Dynamic>
-          )}</Dynamic>
-        </Dynamic>
-      )}</Dynamic>
-    </Dynamic>
+            </props.Td>
+          )}</props.EachCells>
+        </props.Tr>
+      )}</props.EachRows>
+    </props.Tbody>
   )
 }
 
 // process ===================================================================================================================================================================================================
 
-export const defaultsPlugins = [
-  BasePlugin(),
-  RenderPlugin(),
-  IndexPlugin(),
-  StickyHeaderPlugin(),
-  FixedColumnPlugin(),
-  ResizePlugin(),
-  CellSelectionPlugin(),
-  CopyPlugin(),
-  PastePlugin(),
-  VirtualScrollPlugin(),
-  // ExpandPlugin(),
-  // RowGroupPlugin(),
-  EditablePlugin()
-]
-
 function BasePlugin(): Plugin {
   const omits = { col: null, data: null }
 
-  const tbody = o => <tbody {...o} /> as any
-  const thead = o => <thead {...o} /> as any
   const table = o => <table {...o} /> as any
-  const tr = o => <tr {...o} /> as any
-  const th = o => <th {...o} /> as any
-  const td = o => <td {...o} /> as any
+  const thead = o => <thead {...o} /> as any
+  const tbody = o => <tbody {...o} /> as any
+  const tr = o => <tr {...o} {...omits} /> as any
+  const th = o => <th {...o} {...omits} /> as any
+  const td = o => <td {...o} {...omits} /> as any
 
   return {
     store: (store) => ({
       ths: [],
-      thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el))),
+      // thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el))),
+      thSizes: [],
       trs: [],
-      trSizes: toReactive(mapArray(() => store.trs, el => el && createElementSize(el))),
-      // 
-      internal: Symbol('internal_col')
+      // trSizes: toReactive(mapArray(() => store.trs, el => el && createElementSize(el))),
+      trSizes: [],
+      internal: Symbol('internal')
     }),
     processProps: {
       Tbody: ({ Tbody = tbody }) => Tbody,
@@ -212,18 +192,19 @@ function BasePlugin(): Plugin {
         }), o)
         return <Table {...o} />
       },
-      Tr: ({ Tr = tr }, { store }) => component(({ data, ...o }) => {
+      Tr: ({ Tr = tr }, { store }) => o => {
         const [el, setEl] = createSignal<HTMLElement>()
         o = combineProps({ ref: setEl }, o)
 
         createEffect(() => {
           const { y } = o
           store.trs[y] = el()
-          onCleanup(() => store.trs[y] = void 0)
+          store.trSizes[y] = createElementSize(el())
+          onCleanup(() => store.trSizes[y] = store.trs[y] = void 0)
         })
 
         return <Tr {...o} />
-      }),
+      },
       Th: ({ Th = th }, { store }) => o => {
         const [el, setEl] = createSignal<HTMLElement>()
         
@@ -234,13 +215,13 @@ function BasePlugin(): Plugin {
           createMemo(() => props.cellProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => props.thProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
-          omits
         )
 
         createEffect(() => {
           const { x } = o
           store.ths[x] = el()
-          onCleanup(() => store.ths[x] = void 0)
+          store.thSizes[x] = createElementSize(el())
+          onCleanup(() => store.thSizes[x] = store.ths[x] = void 0)
         })
         
         return <Th {...mProps}>{o.children}</Th>
@@ -253,7 +234,6 @@ function BasePlugin(): Plugin {
           createMemo(() => props.cellProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => props.tdProps?.(o) || {}, null, { equals: isEqual }),
           createMemo(() => o.col.props?.(o) || {}, null, { equals: isEqual }),
-          omits
         )
         return <Td {...mProps}>{o.children}</Td>
       },
@@ -263,78 +243,84 @@ function BasePlugin(): Plugin {
   }
 }
 
-function IndexPlugin(): Plugin {
-  return {
-    store: (store) => ({
-      $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal]: 1, width: 40, style: 'text-align: center', class: 'index', render: (o) => o.y + 1 } as TableColumn
-    }),
-    processProps: {
-      columns: (props, { store }) => props.index ? [store.$index, ...props.columns || []] : props.columns
+const IndexPlugin: Plugin = {
+  store: (store) => ({
+    $index: { name: '', id: Symbol('index'), fixed: 'left', [store.internal]: 1, width: 40, style: 'text-align: center', class: 'index', render: (o) => o.y + 1 } as TableColumn
+  }),
+  processProps: {
+    columns: (props, { store }) => props.index ? [store.$index, ...props.columns || []] : props.columns
+  }
+}
+
+const StickyHeaderPlugin: Plugin = {
+  processProps: {
+    Thead: ({ Thead }) => o => {
+      const { props } = useContext(Ctx)
+      o = combineProps(() => props.stickyHeader ? { class: 'sticky-header' } : {}, o)
+      return <Thead {...o} />
+    },
+  }
+}
+
+const FixedColumnPlugin: Plugin = {
+  processProps: {
+    columns: ({ columns }) => [
+      ...columns?.filter(e => e.fixed == 'left') || [],
+      ...columns?.filter(e => !e.fixed) || [],
+      ...columns?.filter(e => e.fixed == 'right') || [],
+    ],
+    cellProps: ({ cellProps }, { store }) => (o) => {
+      const { x, col: { fixed } } = o
+      const prev = cellProps?.(o)
+      return fixed ? combineProps(prev || {}, {
+        class: `fixed-${fixed}`,
+        style: `${fixed}: ${sumBy(store.thSizes.slice(fixed == 'left' ? 0 : x + 1, fixed == 'left' ? x : Infinity), size => size?.width || 0)}px`
+      }) : prev
     }
   }
 }
 
-function StickyHeaderPlugin(): Plugin {
-  return {
-    processProps: {
-      Thead: ({ Thead }) => o => {
-        const { props } = useContext(Ctx)
-        o = combineProps(() => props.stickyHeader ? { class: 'sticky-header' } : {}, o)
-        return <Thead {...o} />
-      },
-    }
-  }
-}
-
-function FixedColumnPlugin(): Plugin {
-  return {
-    processProps: {
-      columns: ({ columns }) => [
-        ...columns?.filter(e => e.fixed == 'left') || [],
-        ...columns?.filter(e => !e.fixed) || [],
-        ...columns?.filter(e => e.fixed == 'right') || [],
-      ],
-      cellProps: ({ cellProps }, { store }) => (o) => {
-        const { x, col: { fixed } } = o
-        const prev = cellProps?.(o)
-        return fixed ? combineProps(prev || {}, {
-          class: `fixed-${fixed}`,
-          style: `${fixed}: ${sumBy(store.thSizes.slice(fixed == 'left' ? 0 : x + 1, fixed == 'left' ? x : Infinity), size => size?.width || 0)}px`
-        }) : prev
-      }
-    }
-  }
-}
-
-function ResizePlugin(): Plugin {
-  return {
-    processProps: {
-      Thead: ({ Thead }, { store }) => (o) => {
-        let theadEl: HTMLElement
-
-        const { props } = useContext(Ctx)
-
-        onMount(() => {
-          useSplit({ container: theadEl, cells: () => store.ths.filter(identity), size: 8, handle: i => <Handle i={i} /> })
+const ResizePlugin: Plugin = {
+  processProps: {
+    Thead: ({ Thead }, { store }) => o => {
+      let theadEl: HTMLElement
+      const { props } = useContext(Ctx)
+      onMount(() => {
+        useSplit({ container: theadEl, cells: () => store.ths.filter(identity), size: 8, handle: i => <Handle i={i} /> })
+      })
+      
+      const Handle: Component = ({ i }) => {
+        let el!: HTMLElement
+        usePointerDrag(() => el, {
+          start(e, move, end) {
+            const col = theadEl.parentElement?.querySelector('colgroup')?.children[i - 1]! as HTMLTableColElement
+            const sw = col.offsetWidth
+            move((e, o) => col.style.width = `${clamp(sw + o.ox, 45, 800)}px`)
+            // end(() => props.columns[o.i - 1].width = col.offsetWidth) // todo
+            end(() => props.columns![i - 1].onWidthChange?.(col.offsetWidth))
+          },
         })
-
-        const Handle: Component = ({ i }) => {
-          let el!: HTMLElement
-          usePointerDrag(() => el, {
-            start(e, move, end) {
-              const col = theadEl.parentElement?.querySelector('colgroup')?.children[i - 1]! as HTMLTableColElement
-              const sw = col.offsetWidth
-              move((e, o) => col.style.width = `${clamp(sw + o.ox, 45, 800)}px`)
-              // end(() => props.columns[o.i - 1].width = col.offsetWidth) // todo
-              end(() => props.columns![i - 1].onWidthChange?.(col.offsetWidth))
-            },
-          })
-          return <div ref={el} class="handle size-full cursor-w-resize hover:bg-gray active:bg-gray" />
-        }
-
-        o = combineProps({ ref: e => theadEl = e }, o)
-        return <Thead {...o} />
-      },
-    }
+        return <div ref={el} class="handle size-full cursor-w-resize hover:bg-gray active:bg-gray" />
+      }
+      
+      o = combineProps({ ref: e => theadEl = e }, o)
+      return <Thead {...o} />
+    },
   }
 }
+
+export const defaultsPlugins = [
+  BasePlugin(),
+  RenderPlugin,
+  IndexPlugin,
+  StickyHeaderPlugin,
+  FixedColumnPlugin,
+  ResizePlugin,
+  CellSelectionPlugin,
+  CopyPlugin,
+  PastePlugin,
+  VirtualScrollPlugin,
+  // ExpandPlugin,
+  // RowGroupPlugin,
+  EditablePlugin
+]

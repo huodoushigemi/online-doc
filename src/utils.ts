@@ -1,4 +1,5 @@
-import { delay } from "es-toolkit"
+import { delay, isFunction, isPlainObject, isPromise } from "es-toolkit"
+import { useMemoAsync } from "./hooks"
 
 export function file2base64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -77,4 +78,30 @@ export function findret<T, R>(arr: readonly T[], cb: (e: T, i: number) => R): R 
     const ret = cb(arr[i], i)
     if (ret != null) return ret
   }
+}
+
+type Fnable<T> = T | (() => T)
+type Awatable<T> = T | Promise<T>
+type BaseType = string | number | boolean | null
+
+const cache = new WeakMap
+
+export function resolveOptions(opts: Fnable<Awatable<Record<string, any> | ({ label: any; value: any } | BaseType)[]>>): { label: any; value: any }[] {
+  let ret = opts
+  if (isFunction(ret)) ret = ret()
+  if (isPromise(ret)) {
+    if (cache.has(ret)) return cache.get(ret)()
+    cache.set(ret, useMemoAsync(() => ret.then(e => e.map(e => resolveOptions(e)))))
+    return cache.get(ret)()
+  }
+  if (isPlainObject(ret)) ret = Object.entries(ret).map(([k, v]) => ({ value: k, label: v, ...v }))
+  return (ret as any[])?.map(e => resolveOpt(e)) || []
+}
+
+function resolveOpt(opt) {
+  return (
+    isPlainObject(opt) ? opt :
+    Array.isArray(opt) ? { label: opt[0], value: opt[1] } :
+    { label: opt, value: opt }
+  )
 }

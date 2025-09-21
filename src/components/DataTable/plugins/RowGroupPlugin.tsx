@@ -1,7 +1,5 @@
-import { Dynamic } from 'solid-js/web'
 import { groupBy, isEqual, remove } from 'es-toolkit'
 import { Ctx, type Plugin } from '../xxx'
-import { log } from '../../../utils'
 import { createMemo, useContext } from 'solid-js'
 import type { TableStore } from '../xxx'
 

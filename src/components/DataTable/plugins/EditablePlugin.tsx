@@ -1,7 +1,8 @@
-import { createEffect, createMemo, createRoot, createSignal, mergeProps, on, onCleanup, onMount, useContext, type JSX } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
+import { createEffect, createMemo, createRoot, createSignal, on, onCleanup, useContext, type JSX } from 'solid-js'
 import { combineProps } from '@solid-primitives/props'
-import { chooseFile, log } from '@/utils'
+import { createAsyncMemo } from '@solid-primitives/memo'
+import { delay } from 'es-toolkit'
+import { chooseFile, log, resolveOptions } from '@/utils'
 import { Ctx, type Plugin, type TableColumn } from '../xxx'
 import { Checkbox, Files } from './RenderPlugin/components'
 
@@ -12,6 +13,9 @@ declare module '../xxx' {
   interface TableColumn {
     editable?: boolean
     editor?: string | Editor
+    editorProps?: any
+    editorPopup?: boolean // todo
+    editOnInput?: boolean
   }
   interface TableStore {
     editors: { [key: string]: Editor }
@@ -34,80 +38,93 @@ export interface EditorProps extends Record<any, any> {
   stopEditing: () => void
 }
 
-export function EditablePlugin(): Plugin {
-  return {
-    store: () => ({
-      editors: {
-        text,
-        number,
-        range,
-        date,
-        time,
-        datetime,
-        color,
-        tel,
-        password,
-        file,
-        checkbox,
-      }
-    }),
-    processProps: {
-      Td: ({ Td }, { store }) => o => {
-        const { props } = useContext(Ctx)
-        const [editing, setEditing] = createSignal(false)
+export const EditablePlugin: Plugin = {
+  store: () => ({
+    editors: {
+      text,
+      number,
+      range,
+      date,
+      time,
+      datetime,
+      color,
+      tel,
+      password,
+      file,
+      checkbox,
+      select,
+    }
+  }),
+  processProps: {
+    Td: ({ Td }, { store }) => o => {
+      const { props } = useContext(Ctx)
+      const editable = createMemo(() => !!o.col.editable && !o.data[store.internal] && !o.col[store.internal])
+      const [editing, setEditing] = createSignal(false)
+      let eventKey = ''
 
-        const editorState = createMemo(() => {
-          if (editing()) {
-            const editor = (editor => typeof editor == 'string' ? store.editors[editor] : editor)(o.col.editor || 'text')
-            const ret = editor({ col: o.col, data: o.data, value: props.data![o.y][o.col.id], stopEditing: () => setEditing(false) })
-            onCleanup(() => {
-              o.data[o.col.id] = ret.getValue()
-              ret.destroy()
-            })
-            return ret
+      const selected = createAsyncMemo(() => (([x, y]) => o.x == x && o.y == y)(store.selected.start || []))
+
+      const editorState = createAsyncMemo(async () => {
+        if (editing()) {
+          const editor = (editor => typeof editor == 'string' ? store.editors[editor] : editor)(o.col.editor || 'text')
+          const ret = editor({ ...o.col.editorProps, col: o.col, eventKey, data: o.data, value: props.data![o.y][o.col.id], stopEditing: () => setEditing(false) })
+          onCleanup(() => {
+            o.data[o.col.id] = ret.getValue()
+            ret.destroy()
+          })
+          return ret
+        }
+      })
+
+      createEffect(() => {
+        editorState()?.focus?.()
+      })
+      
+      createEffect(() => {
+        if (editing()) {
+          const sss = createMemo(() => JSON.stringify(store.selected))
+          createEffect(on(sss, () => setEditing(false), { defer: true }))
+        }
+      })
+      
+      o = combineProps({ get style() { return editing() ? `padding: 0; height: ${store.trSizes[o.y]?.height}px` : '' }, onDblClick: () => setEditing(editable()) } as JSX.HTMLAttributes<any>, o)
+      return (
+        <Td {...o}>
+          {selected() && editable() && !editing() && o.col.editOnInput &&
+            <input
+              style='position: absolute; margin-top: 1em; width: 0; height: 0; pointer-events; none; opacity: 0'
+              ref={e => delay(0).then(() => e.focus())}
+              onInput={e => {
+                eventKey = e.target.value
+                setEditing(!e.isComposing)
+              }}
+              onCompositionEnd={() => {
+                setEditing(true)
+              }}
+            />
           }
-        })
-
-        createEffect(() => {
-          editorState()?.focus?.()
-        })
-
-        createEffect(() => {
-          if (editing()) {
-            const sss = createMemo(() => JSON.stringify(store.selected))
-            createEffect(on(sss, () => setEditing(false), { defer: true }))
+          {editorState()?.el
+            ? <div style={`height: 100%; box-sizing: border-box; padding: 0;`}>{editorState()?.el}</div>
+            : o.children
           }
-        })
-        
-        o = combineProps({
-          get style() { return editing() ? `padding: 0; height: ${store.trSizes[o.y]?.height}px` : '' },
-          onDblClick: () => setEditing(!!o.col.editable && !o.data[store.internal] && !o.col[store.internal])
-        }, o)
-        return (
-          <Td {...o}>
-            {editorState()?.el
-              ? <div style={`height: 100%; box-sizing: border-box; padding: 0;`}>{editorState()?.el}</div>
-              : o.children
-            }
-          </Td>
-        )
-      }
+        </Td>
+      )
     }
   }
 }
 
-const BaseInput: Editor = ({ stopEditing, eventKey, value, col, ...attrs }) => createRoot(destroy => {
+const BaseInput: Editor = ({ stopEditing, eventKey, value, col, type }) => createRoot(destroy => {
   const [v, setV] = createSignal(eventKey || value)
   const el: HTMLElement = <input
     class='relative block px-2 size-full z-9 box-border resize-none'
     value={v() || ''}
+    type={type}
     onInput={e => setV(e.target.value)}
     on:pointerdown={e => e.stopPropagation()}
     on:keydown={e => {
       e.stopPropagation()
       e.key == 'Enter' ? stopEditing() : e.key == 'Escape' ? (setV(value), stopEditing()) : void 0
     }}
-    {...attrs}
   />
   
   return {
@@ -128,6 +145,21 @@ const datetime: Editor = (props) => BaseInput({ ...props, type: 'datetime-local'
 const color: Editor = (props) => BaseInput({ ...props, type: 'color'  })
 const tel: Editor = (props) => BaseInput({ ...props, type: 'tel'  })
 const password: Editor = (props) => BaseInput({ ...props, type: 'password'  })
+
+const select: Editor = ({ stopEditing, value, col }) => createRoot(destroy => {
+  const [v, setV] = createSignal(value)
+  return {
+    el: (
+      <select class='size-full' value={v()} onChange={e => { setV(e.target.value); stopEditing() }} on:pointerdown={e => e.stopPropagation()}>
+        {resolveOptions(col.enum ?? []).map(e => (
+          <option value={e.value}>{e.label}</option>
+        ))}
+      </select>
+    ),
+    getValue: v,
+    destroy
+  }
+})
 
 const file: Editor = (props) => createRoot(destroy => {
   const [v, setV] = createSignal(props.value)

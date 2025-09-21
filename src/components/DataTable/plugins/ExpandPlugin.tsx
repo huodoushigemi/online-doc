@@ -1,4 +1,3 @@
-import { Dynamic } from 'solid-js/web'
 import { createMemo, createSignal, useContext } from 'solid-js'
 import type { Component, JSX } from 'solid-js'
 import { unwrap } from 'solid-js/store'

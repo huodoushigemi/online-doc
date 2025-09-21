@@ -1,9 +1,7 @@
-import { createComponent, createEffect, createMemo, createRoot, createSignal, mergeProps, on, onCleanup, onMount, useContext, type JSX } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
+import { type JSX } from 'solid-js'
 import { combineProps } from '@solid-primitives/props'
 import { component } from 'undestructure-macros'
-import { chooseFile, log } from '@/utils'
-import { Ctx, type Plugin, type TableColumn, type TableProps, type TD } from '../../xxx'
+import { type Plugin, type TD } from '../../xxx'
 import { Checkbox, Files } from './components'
 
 declare module '../../xxx' {
@@ -12,6 +10,7 @@ declare module '../../xxx' {
   }
   interface TableColumn {
     render?: string | Render
+    enum?: Record<string, any> | { label?: string; value: any }
   }
   interface TableStore {
     renders: { [key: string]: Render }
@@ -20,29 +19,27 @@ declare module '../../xxx' {
 
 export type Render = (props: Parameters<TD>[0] & { onChange?: (v) => void }) => JSX.Element
 
-export function RenderPlugin(): Plugin {
-  return {
-    priority: -Infinity,
-    store: () => ({
-      renders: {
-        text,
-        number,
-        date,
-        checkbox,
-        file
-      }
-    }),
-    processProps: {
-      Td: ({ Td }, { store }) => o => {
-        return (
-          <Td {...o}>
-            {(() => {
-              const Comp = (e => typeof e == 'string' ? store.renders[e] : e)(o.col.render) || text
-              return <Comp {...o} />
-            })()}
-          </Td>
-        )
-      }
+export const RenderPlugin: Plugin = {
+  priority: -Infinity,
+  store: () => ({
+    renders: {
+      text,
+      number,
+      date,
+      checkbox,
+      file
+    }
+  }),
+  processProps: {
+    Td: ({ Td }, { store }) => o => {
+      return (
+        <Td {...o}>
+          {(() => {
+            const Comp = (e => typeof e == 'string' ? store.renders[e] : e)(o.col.render) || text
+            return <Comp {...o} />
+          })()}
+        </Td>
+      )
     }
   }
 }

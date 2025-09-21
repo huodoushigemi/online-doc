@@ -39,3 +39,13 @@ export const Tag = component(({ disabled, children, onDel, ...props }) => {
     </div>
   )
 })
+
+// 评估公式
+export const evaluateFormula = (formula: string, data: any) => {
+  try {
+    const ctx = { data }
+    return (new Function(...Object.keys(ctx), `return ` + formula))(...Object.values(ctx))
+  } catch (error) {
+    return '公式错误'
+  }
+}
