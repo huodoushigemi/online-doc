@@ -69,7 +69,11 @@ export const EditablePlugin: Plugin = {
           const editor = (editor => typeof editor == 'string' ? store.editors[editor] : editor)(o.col.editor || 'text')
           const ret = editor({ ...o.col.editorProps, col: o.col, eventKey, data: o.data, value: props.data![o.y][o.col.id], stopEditing: () => setEditing(false) })
           onCleanup(() => {
-            o.data[o.col.id] = ret.getValue()
+            if (o.data[o.col.id] != ret.getValue()) {
+              const arr = [...props.data!]
+              arr[o.y] = { ...arr[o.y], [o.col.id]: ret.getValue() }
+              props.onDataChange?.(arr)
+            }
             ret.destroy()
           })
           return ret
@@ -86,14 +90,21 @@ export const EditablePlugin: Plugin = {
           createEffect(on(sss, () => setEditing(false), { defer: true }))
         }
       })
+
+      let input: HTMLInputElement
       
-      o = combineProps({ get style() { return editing() ? `padding: 0; height: ${store.trSizes[o.y]?.height}px` : '' }, onDblClick: () => setEditing(editable()) } as JSX.HTMLAttributes<any>, o)
+      o = combineProps({
+        get style() { return editing() ? `padding: 0; height: ${store.trSizes[o.y]?.height}px` : '' },
+        onClick: () => input.focus?.(),
+        onDblClick: () => setEditing(editable())
+      } as JSX.HTMLAttributes<any>, o)
+      
       return (
         <Td {...o}>
           {selected() && editable() && !editing() && o.col.editOnInput &&
             <input
               style='position: absolute; margin-top: 1em; width: 0; height: 0; pointer-events; none; opacity: 0'
-              ref={e => delay(0).then(() => e.focus())}
+              ref={e => { input = e; delay(0).then(() => e.focus()) }}
               onInput={e => {
                 eventKey = e.target.value
                 setEditing(!e.isComposing)

@@ -3,6 +3,8 @@ import { combineProps } from '@solid-primitives/props'
 import { component } from 'undestructure-macros'
 import { type Plugin, type TD } from '../../xxx'
 import { Checkbox, Files } from './components'
+import { resolveOptions } from '@/utils'
+import { createStore } from 'solid-js/store'
 
 declare module '../../xxx' {
   interface TableProps {
@@ -10,7 +12,7 @@ declare module '../../xxx' {
   }
   interface TableColumn {
     render?: string | Render
-    enum?: Record<string, any> | { label?: string; value: any }
+    enum?: Record<string, any> | { label?: string; value: any }[]
   }
   interface TableStore {
     renders: { [key: string]: Render }
@@ -45,9 +47,9 @@ export const RenderPlugin: Plugin = {
 }
 
 const text: Render = component(({ data, col, onChange }) => {
-  return (
-    data[col.id]
-  )
+  return (v =>
+    col.enum ? resolveOptions(col.enum).find(e => e.value == v)?.label ?? v : v
+  )(data[col.id])
 })
 
 const number = text

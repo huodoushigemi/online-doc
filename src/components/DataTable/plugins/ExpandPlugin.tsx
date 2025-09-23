@@ -19,53 +19,51 @@ declare module '../xxx' {
   }
 }
 
-export function ExpandPlugin(): Plugin {
-  return {
-    store: (store) => ({
-      expands: [],
-      expandCol: {
-        id: Symbol('expand'),
-        fixed: 'left',
-        width: 45,
-        render: (o) => <ArrowCell store={store} data={o.data} />,
-        props: o => ({ onClick: () => store.toggleExpand(o.data) }),
-        [store.internal]: 1
-      },
-      isExpand: data => !!store.expands.find(e => unwrap(e) == unwrap(data)),
-      toggleExpand: (data) => store.isExpand(data) ? remove(store.expands!, e => unwrap(e) == unwrap(data)) : store.expands.push(unwrap(data))
-    }),
-    processProps: {
-      columns: ({ columns }, { store }) => [
-        store.expandCol,
-        ...columns!
-      ],
-      Tr: ({ Tr }, { store }) => o => {
-        const { props } = useContext(Ctx)
-        const flag = o.data?.[store.expandCol.id]
-        if (!flag) return <Tr {...o} />
+export const ExpandPlugin: Plugin = {
+  store: (store) => ({
+    expands: [],
+    expandCol: {
+      id: Symbol('expand'),
+      fixed: 'left',
+      width: 45,
+      render: (o) => <ArrowCell store={store} data={o.data} />,
+      props: o => ({ onClick: () => store.toggleExpand(o.data) }),
+      [store.internal]: 1
+    },
+    isExpand: data => !!store.expands.find(e => unwrap(e) == unwrap(data)),
+    toggleExpand: (data) => store.isExpand(data) ? remove(store.expands!, e => unwrap(e) == unwrap(data)) : store.expands.push(unwrap(data))
+  }),
+  processProps: {
+    columns: ({ columns }, { store }) => [
+      store.expandCol,
+      ...columns!
+    ],
+    Tr: ({ Tr }, { store }) => o => {
+      const { props } = useContext(Ctx)
+      const flag = o.data?.[store.expandCol.id]
+      if (!flag) return <Tr {...o} />
 
-        return (
-          <Tr {...o}>
-            <td colspan={props.columns?.length} style='width: 100%'>{props.expand?.render?.(o)}</td>
-          </Tr>
-        )
-
-        // const show = createMemo(() => store.isExpand(o.data))
-        
-        // const { props } = useContext(Ctx)
-        // return <>
-        //   <Dynamic component={tr} {...o} />
-        //   {show() && <tr style={`transform: translateY(-100%)`}>
-        //     <div colspan={props.columns?.length}>sadas</div>
-        //   </tr>}
-        // </>
-      },
-      data: ({ data }, { store }) => (
-        store.expands.length
-          ? data?.flatMap(e => store.isExpand(e) ?  [e, { [store.expandCol.id]: 1 }] : e)
-          : data
+      return (
+        <Tr {...o}>
+          <td colspan={props.columns?.length} style='width: 100%'>{props.expand?.render?.(o)}</td>
+        </Tr>
       )
-    }
+      
+      // const show = createMemo(() => store.isExpand(o.data))
+      
+      // const { props } = useContext(Ctx)
+      // return <>
+      //   <Dynamic component={tr} {...o} />
+      //   {show() && <tr style={`transform: translateY(-100%)`}>
+      //     <div colspan={props.columns?.length}>sadas</div>
+      //   </tr>}
+      // </>
+    },
+    data: ({ data }, { store }) => (
+      store.expands.length
+        ? data?.flatMap(e => store.isExpand(e) ?  [e, { [store.expandCol.id]: 1 }] : e)
+        : data
+    )
   }
 }
 

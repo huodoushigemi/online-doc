@@ -3,7 +3,7 @@ import { combineProps } from '@solid-primitives/props'
 import { createEventListener } from '@solid-primitives/event-listener'
 import { type MaybeAccessor } from '@solid-primitives/utils'
 import { Ctx, type Plugin } from '../xxx'
-import { usePointerDrag } from '../../../hooks'
+import { usePointerDrag, useTinykeys } from '@/hooks'
 
 declare module '../xxx' {
   interface TableProps {
@@ -102,30 +102,32 @@ export const CellSelectionPlugin: Plugin = {
           })
         },
       })
-      
-      keymap(() => el, '←', () => {
-        const { start, end } = store.selected
-        start[0] = end[0] = Math.max(start[0] - 1, 0)
-        end[1] = start[1]
-        scrollIntoView()
-      })
-      keymap(() => el, '→', () => {
-        const { start, end } = store.selected
-        start[0] = end[0] = Math.min(start[0] + 1, props.columns!.length - 1)
-        end[1] = start[1]
-        scrollIntoView()
-      })
-      keymap(() => el, '↑', () => {
-        const { start, end } = store.selected
-        start[1] = end[1] = Math.max(start[1] - 1, 0)
-        end[0] = start[0]
-        scrollIntoView()
-      })
-      keymap(() => el, '↓', () => {
-        const { start, end } = store.selected
-        start[1] = end[1] = Math.min(start[1] + 1, props.data!.length - 1)
-        end[0] = start[0]
-        scrollIntoView()
+
+      useTinykeys(() => el, {
+        'ArrowLeft': () => {
+          const { start, end } = store.selected
+          start[0] = end[0] = Math.max(start[0] - 1, 0)
+          end[1] = start[1]
+          scrollIntoView()
+        },
+        'ArrowRight': () => {
+          const { start, end } = store.selected
+          start[0] = end[0] = Math.min(start[0] + 1, props.columns!.length - 1)
+          end[1] = start[1]
+          scrollIntoView()
+        },
+        'ArrowUp': () => {
+          const { start, end } = store.selected
+          start[1] = end[1] = Math.max(start[1] - 1, 0)
+          end[0] = start[0]
+          scrollIntoView()
+        },
+        'ArrowDown': () => {
+          const { start, end } = store.selected
+          start[1] = end[1] = Math.min(start[1] + 1, props.data!.length - 1)
+          end[0] = start[0]
+          scrollIntoView()
+        }
       })
 
       const scrollIntoView = () => {
@@ -139,32 +141,4 @@ export const CellSelectionPlugin: Plugin = {
       return <Table {...o} />
     }
   }
-}
-
-function keymap(el: MaybeAccessor<HTMLElement>, keys: string, cb: (e: KeyboardEvent) => void) {
-  const alias = {
-    'ctrl': 'Control',
-    '←': 'ArrowLeft',
-    '→': 'ArrowRight',
-    '↑': 'ArrowUp',
-    '↓': 'ArrowDown',
-    'lt': 'ArrowLeft',
-    'rt': 'ArrowRight',
-    'up': 'ArrowUp',
-    'dn': 'ArrowDown',
-  }
-  const set = new Set<string>()
-  createEventListener(el, 'keydown', e => {
-    set.add(e.key.toLowerCase())
-    if (set.size == keys.length && keys.split('+').every(k => set.has(alias[k]?.toLowerCase() ?? k))) {
-      e.preventDefault()
-      // batch(() => cb(e))
-      cb(e)
-    }
-  })
-  createEventListener(el, 'keyup', e => {
-    set.delete(e.key.toLowerCase())
-  })
-
-  createEventListener(el, 'blur', () => set.clear())
 }

@@ -1,4 +1,4 @@
-import { createEffect, createMemo, useContext, createComputed, mergeProps, createSignal, createRenderEffect } from 'solid-js'
+import { createEffect, createMemo, useContext, createComputed, mergeProps, createSignal, createRenderEffect, mapArray, untrack } from 'solid-js'
 import { createMutable, createStore, reconcile } from 'solid-js/store'
 import { combineProps } from '@solid-primitives/props'
 import { createScrollPosition } from '@solid-primitives/scroll'
@@ -31,9 +31,10 @@ function useVirtualizer(opt) {
   
   const sizes = createMutable(Array(opt.count))
   createComputed(() => {
-    for (let i = 0, len = opt.count; i < len; i++) {
-      sizes[i] = opt.estimateSize(i)
-    }
+    const { count } = opt
+    untrack(() => {
+      for (let i = 0; i < count; i++) sizes[i] ||= opt.estimateSize(i)
+    })
   })
 
   type Item = { start: number; end: number; index: number }
@@ -80,7 +81,7 @@ function useVirtualizer(opt) {
       if (i <= start() && size != sizes[i]) opt.getScrollElement().scrollTop += size - sizes[i] // 修复滚动抖动
       sizes[i] = size
     },
-    getVirtualItems: () => items2()
+    getVirtualItems: items2
   }
 }
 

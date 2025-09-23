@@ -43,17 +43,18 @@
 
 .fixed-left, .fixed-right {
   @apply sticky z-1 bg-#fff;
+  &::after {
+    @apply content-[''] absolute top-0 w-[10px] h-full pointer-events-none;
+  }
 }
 
 .fixed-left::after {
-  content: '';
-  @apply absolute top-0 left-full w-[10px] h-full;
+  @apply left-full;
   box-shadow: inset 10px 0 10px -10px rgba(0, 0, 0, .15);
 }
 
 .fixed-right::after {
-  content: '';
-  @apply absolute top-0 right-full w-[10px] h-full;
+  @apply right-full;
   box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, .15);
 }
 

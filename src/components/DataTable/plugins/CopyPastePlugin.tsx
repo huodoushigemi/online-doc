@@ -1,19 +1,11 @@
-import { batch, createEffect, createMemo, onMount, splitProps, useContext, type Component } from 'solid-js'
-import { component } from 'undestructure-macros'
+import { createEffect, useContext, type Component } from 'solid-js'
 import { Ctx, type Plugin } from '../xxx'
 import { combineProps } from '@solid-primitives/props'
 import { createEventListener } from '@solid-primitives/event-listener'
-import { log } from '../../../utils'
 
 export const CopyPlugin: Plugin = {
   processProps: {
-    Table: ({ Table }, { store }) => component(({ children, ...props }) => {
-      let el: HTMLElement
-      const ctx = useContext(Ctx)
-
-      createEventListener(() => el, 'pointerdown', () => {
-        el.focus({ preventScroll: true })
-      })
+    Table: ({ Table }, { store }) => o => {
       
       createEventListener(() => el, 'keydown', e => {
         const { start, end } = store.selected
@@ -36,18 +28,15 @@ export const CopyPlugin: Plugin = {
         el.classList.remove('copied')
       })
 
-      return (
-        <Table tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
-          {children}
-        </Table>
-      )
-    })
+      o = combineProps({ ref: e => el = e, tabindex: -1 }, o)
+      return <Table {...o} />
+    }
   }
 }
 
 export const PastePlugin: Plugin = {
   processProps: {
-    Table: ({ Table }, { store }) => component(({ children, ...props }) => {
+    Table: ({ Table }, { store }) => o => {
       let el: HTMLElement
       const ctx = useContext(Ctx)
       
@@ -60,22 +49,18 @@ export const PastePlugin: Plugin = {
           const text = await navigator.clipboard.readText()
           const arr2 = text.split('\n').map(row => row.split('\t'))
           const cols = ctx.props.columns!.slice(start[0], start[0] + arr2[0].length)
-          batch(() => {
-            arr2.forEach((row, y) => {
-              row = Object.fromEntries(cols.map((col, x) => [col.id, row[x]]))
-              ctx.props.data![start[1] + y] = { ...ctx.props.data![start[1] + y], ...row }
-            })
-            store.selected.end = [start[0] + cols.length - 1, Math.min(start[1] + arr2.length - 1, ctx.props.data!.length - 1)]
+          const data = ctx.props.data!.slice()
+          arr2.forEach((row, y) => {
+            row = Object.fromEntries(cols.map((col, x) => [col.id, row[x]]))
+            data[start[1] + y] = { ...data![start[1] + y], ...row }
           })
-          ctx.props.onDataChange?.(ctx.props.data!.slice())
+          store.selected.end = [start[0] + cols.length - 1, Math.min(start[1] + arr2.length - 1, ctx.props.data!.length - 1)]
+          ctx.props.onDataChange?.(data)
         }
       })
       
-      return (
-        <Table tabindex={-1} {...combineProps(props, { ref: e => el = e })}>
-          {children}
-        </Table>
-      )
-    })
+      o = combineProps({ ref: e => el = e, tabindex: -1 }, o)
+      return <Table {...o} />
+    }
   }
 }

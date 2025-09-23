@@ -3,9 +3,10 @@ import { createPointerListeners } from '@solid-primitives/pointer'
 import { access, type Many, type MaybeAccessor } from '@solid-primitives/utils'
 import { $PROXY, createComputed, createEffect, createMemo, createRenderEffect, createRoot, createSignal, onCleanup, type Signal } from 'solid-js'
 import { makePersisted, storageSync } from '@solid-primitives/storage'
-import { isFunction, isPromise } from 'es-toolkit'
+import { isFunction, isPromise, mapValues } from 'es-toolkit'
 import { castArray } from 'es-toolkit/compat'
 import { createMutationObserver } from '@solid-primitives/mutation-observer'
+import { createKeybindingsHandler } from 'tinykeys'
 import { log, unFn } from '../utils'
 
 interface UseDragOptions {
@@ -107,7 +108,8 @@ type Reactive<T extends object> = { [K in keyof T]: T[K] extends () => infer V ?
 export function toReactive<T extends object>(fn: (() => T) | T): Reactive<T> {
   const v = () => unFn(fn)
   return new Proxy(Object.create(null), {
-    get: (o, k, r) => k == $PROXY ? r : (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
+    // get: (o, k, r) => k == $PROXY ? r : (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
+    get: (o, k, r) => (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
     // get: (o, k, r) => k == $PROXY ? r : unFn(v()[k]),
     defineProperty: (o, k, attributes) => Reflect.defineProperty(v(), k, attributes),
     getPrototypeOf: () => Reflect.getPrototypeOf(v()),
@@ -148,4 +150,13 @@ export function useMutation<T>(initial: MaybeAccessor<Node | Node[]>, options: M
   const ret = createSignal<T>(cb())
   createMutationObserver(initial, options, ms => ret[1](cb() as any))
   return ret[0]
+}
+
+export function useTinykeys(el: MaybeAccessor<HTMLElement | undefined>, handlers) {
+  createEventListener(el, 'keydown', createKeybindingsHandler({
+    ...mapValues(handlers, cb => e => {
+      e.preventDefault()
+      cb(e)
+    })
+  }))
 }

@@ -18,40 +18,38 @@ declare module '../xxx' {
   }
 }
 
-export function RowGroupPlugin(): Plugin {
-  return {
-    store: (store) => ({
-      rowGroup: {
-        expands: [],
-        isExpand: data => store.rowGroup.expands.some(e => isEqual(e, data[symbol].path)),
-        toggleExpand: data => store.rowGroup.isExpand(data) ? remove(store.rowGroup.expands, e => isEqual(e, data[symbol].path)) : store.rowGroup.expands.push(data[symbol].path)
-      }
-    }),
-    processProps: {
-      Td: ({ Td }, { store }) => o => {
-        if (!o.data?.[symbol]) return <Td {...o} />
-        
-        const { props } = useContext(Ctx)
-        const show = createMemo(() => store.rowGroup.isExpand(o.data))
-
-        return (
-          <Td {...o}>
-            {props.columns?.findIndex(e => !e[store.internal]) == o.x ? (
-              <div class='flex items-center' style={`padding-left: ${(o.data[symbol].path.length - 1) * 16}px`} onDblClick={() => store.rowGroup.toggleExpand(o.data)}>
-                <ILucideChevronRight class='icon-clickable mr-2' style={`transform: rotate(${show() ? 90 : 0}deg); opacity: .6`} onClick={() => store.rowGroup.toggleExpand(o.data)} />
-                {o.data[symbol].value}
-              </div>
-            ) : o.children}
-          </Td>
-        )
-      },
-      data: ({ data }, { store }) => (
-        store.props?.rowGroup?.fields?.length
-          ? expandData(data, store)
-          : data
+export const RowGroupPlugin: Plugin = {
+  store: (store) => ({
+    rowGroup: {
+      expands: [],
+      isExpand: data => store.rowGroup.expands.some(e => isEqual(e, data[symbol].path)),
+      toggleExpand: data => store.rowGroup.isExpand(data) ? remove(store.rowGroup.expands, e => isEqual(e, data[symbol].path)) : store.rowGroup.expands.push(data[symbol].path)
+    }
+  }),
+  processProps: {
+    Td: ({ Td }, { store }) => o => {
+      if (!o.data?.[symbol]) return <Td {...o} />
+      
+      const { props } = useContext(Ctx)
+      const show = createMemo(() => store.rowGroup.isExpand(o.data))
+      
+      return (
+        <Td {...o}>
+          {props.columns?.findIndex(e => !e[store.internal]) == o.x ? (
+            <div class='flex items-center' style={`padding-left: ${(o.data[symbol].path.length - 1) * 16}px`} onDblClick={() => store.rowGroup.toggleExpand(o.data)}>
+              <ILucideChevronRight class='icon-clickable mr-2' style={`transform: rotate(${show() ? 90 : 0}deg); opacity: .6`} onClick={() => store.rowGroup.toggleExpand(o.data)} />
+              {o.data[symbol].value}
+            </div>
+          ) : o.children}
+        </Td>
       )
     },
-  }
+    data: ({ data }, { store }) => (
+      store.props?.rowGroup?.fields?.length
+        ? expandData(data, store)
+        : data
+    )
+  },
 }
 
 const symbol = Symbol('row-group')

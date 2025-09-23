@@ -1,6 +1,6 @@
 import { clamp, difference, identity, isEqual, mapValues, sumBy } from 'es-toolkit'
-import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup } from 'solid-js'
-import { createMutable } from 'solid-js/store'
+import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, getOwner, runWithOwner } from 'solid-js'
+import { createMutable, createStore } from 'solid-js/store'
 import { combineProps } from '@solid-primitives/props'
 import { toReactive, useMemo, usePointerDrag } from '../../hooks'
 import { useSplit } from '../Split'
@@ -16,6 +16,8 @@ import { ExpandPlugin } from './plugins/ExpandPlugin'
 import { RowGroupPlugin } from './plugins/RowGroupPlugin'
 import { EditablePlugin } from './plugins/EditablePlugin'
 import { RenderPlugin } from './plugins/RenderPlugin'
+import { HistoryPlugin } from './plugins/HistoryPlugin'
+import { captureStoreUpdates } from '@solid-primitives/deep'
 
 export const Ctx = createContext({
   props: {} as TableProps2
@@ -57,6 +59,8 @@ export interface TableProps {
   cellProps?: (props) => JSX.HTMLAttributes<any> | void
   // Plugin
   plugins?: Plugin[]
+
+  onDataChange?: (data: any[]) => void
 }
 
 export type TD = Component<{ x: number; y: number; data: any; col: TableColumn; children: JSX.Element }>
@@ -84,6 +88,7 @@ export interface TableStore extends Obj {
   trSizes: Nullable<{ width: number; height: number }>[]
   internal: symbol
   props?: TableProps
+  rawProps: TableProps
 }
 
 export const Table = (props: TableProps) => {
@@ -92,23 +97,28 @@ export const Table = (props: TableProps) => {
   const pluginsProps = mapArray(plugins, () => createSignal<Partial<TableProps>>({}))
 
   const store = createMutable({}) as TableStore
+  store.rawProps = props
 
+  const owner = getOwner()!
   createComputed((old: Plugin[]) => {
     const added = difference(plugins(), old)
-    added.forEach(e => Object.assign(store, e.store?.(store)))
+    runWithOwner(owner, () => {
+      added.forEach(e => Object.assign(store, e.store?.(store)))
+    })
     return plugins()
   }, [])
+  // const aaa = mapArray(plugins, (o) => {
+  //   Object.assign(store, o.store?.(store))
+  // })
+  // createEffect(() => [...aaa()])
   
   createComputed(mapArray(plugins, (e, i) => {
-    // const prev = toReactive(createMemo(() => pluginsProps()[i() - 1]?.[0]() || props))
     const prev = createMemo(() => pluginsProps()[i() - 1]?.[0]() || props)
-
-    const ret = toReactive(mergeProps(prev(), mapValues(e.processProps || {}, v => useMemo(() => v(prev(), { store })) )))
-
+    const ret = mergeProps(prev(), toReactive(mapValues(e.processProps || {}, v => useMemo(() => v(prev(), { store })) )))
     pluginsProps()[i()][1](ret)
   }))
   
-  const mProps = toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) as TableProps2
+  const mProps = createStore(toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()))[0] as TableProps2
   store.props = mProps
 
   const ctx = createMutable({ x: 0, props: mProps })
@@ -172,6 +182,7 @@ function BasePlugin(): Plugin {
   const td = o => <td {...o} {...omits} /> as any
 
   return {
+    priority: Infinity,
     store: (store) => ({
       ths: [],
       // thSizes: toReactive(mapArray(() => store.ths, el => el && createElementSize(el))),
@@ -295,7 +306,7 @@ const ResizePlugin: Plugin = {
           start(e, move, end) {
             const col = theadEl.parentElement?.querySelector('colgroup')?.children[i - 1]! as HTMLTableColElement
             const sw = col.offsetWidth
-            move((e, o) => col.style.width = `${clamp(sw + o.ox, 45, 800)}px`)
+                      move((e, o) => col.style.width = `${clamp(sw + o.ox, 45, 800)}px`)
             // end(() => props.columns[o.i - 1].width = col.offsetWidth) // todo
             end(() => props.columns![i - 1].onWidthChange?.(col.offsetWidth))
           },
@@ -311,6 +322,7 @@ const ResizePlugin: Plugin = {
 
 export const defaultsPlugins = [
   BasePlugin(),
+  VirtualScrollPlugin,
   RenderPlugin,
   IndexPlugin,
   StickyHeaderPlugin,
@@ -319,8 +331,8 @@ export const defaultsPlugins = [
   CellSelectionPlugin,
   CopyPlugin,
   PastePlugin,
-  VirtualScrollPlugin,
   // ExpandPlugin,
   // RowGroupPlugin,
-  EditablePlugin
+  EditablePlugin,
+  // HistoryPlugin,
 ]
