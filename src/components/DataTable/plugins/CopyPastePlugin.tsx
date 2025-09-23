@@ -6,6 +6,7 @@ import { createEventListener } from '@solid-primitives/event-listener'
 export const CopyPlugin: Plugin = {
   processProps: {
     Table: ({ Table }, { store }) => o => {
+      let el: HTMLElement
       
       createEventListener(() => el, 'keydown', e => {
         const { start, end } = store.selected
@@ -39,7 +40,7 @@ export const PastePlugin: Plugin = {
     Table: ({ Table }, { store }) => o => {
       let el: HTMLElement
       const ctx = useContext(Ctx)
-      
+
       createEventListener(() => el, 'keydown', async e => {
         const { start } = store.selected
         if (start.length == 0) return

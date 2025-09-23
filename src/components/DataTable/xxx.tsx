@@ -1,13 +1,12 @@
-import { clamp, difference, identity, isEqual, mapValues, sumBy } from 'es-toolkit'
-import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, getOwner, runWithOwner } from 'solid-js'
-import { createMutable, createStore } from 'solid-js/store'
+import { createContext, createMemo, createSignal, For, useContext, createEffect, type JSX, type Component, createComputed, onMount, mergeProps, mapArray, onCleanup, getOwner, runWithOwner, $PROXY } from 'solid-js'
+import { createMutable, createStore, unwrap } from 'solid-js/store'
 import { combineProps } from '@solid-primitives/props'
+import { clamp, difference, identity, isEqual, mapValues, sumBy } from 'es-toolkit'
 import { toReactive, useMemo, usePointerDrag } from '../../hooks'
 import { useSplit } from '../Split'
 
 import './DataTable.scss'
 import { log, unFn } from '../../utils'
-import { createLazyMemo } from '@solid-primitives/memo'
 import { createElementSize } from '@solid-primitives/resize-observer'
 import { CellSelectionPlugin } from './plugins/CellSelectionPlugin'
 import { CopyPlugin, PastePlugin } from './plugins/CopyPastePlugin'
@@ -118,11 +117,11 @@ export const Table = (props: TableProps) => {
     pluginsProps()[i()][1](ret)
   }))
   
-  const mProps = createStore(toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()))[0] as TableProps2
+  const mProps = toReactive(() => pluginsProps()[pluginsProps().length - 1][0]()) as TableProps2
   store.props = mProps
 
-  const ctx = createMutable({ x: 0, props: mProps })
-  
+  const ctx = createMutable({ props: mProps })
+
   window.store = store
   window.ctx = ctx
 
@@ -193,14 +192,15 @@ function BasePlugin(): Plugin {
       internal: Symbol('internal')
     }),
     processProps: {
+      data: ({ data }) => data![$PROXY] ?? data,
       Tbody: ({ Tbody = tbody }) => Tbody,
       Thead: ({ Thead = thead }) => Thead,
       Table: ({ Table = table }) => o => {
         const { props } = useContext(Ctx)
-        o = combineProps(() => ({
-          class: `data-table ${props.class} ${props.border && 'data-table--border'}`,
-          style: props.style
-        }), o)
+        o = combineProps({
+          get class() { return `data-table ${props.class} ${props.border && 'data-table--border'}` },
+          get style() { return props.style }
+        }, o)
         return <Table {...o} />
       },
       Tr: ({ Tr = tr }, { store }) => o => {

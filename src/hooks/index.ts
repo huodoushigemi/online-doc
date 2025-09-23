@@ -107,15 +107,17 @@ const $MEMO = Symbol()
 type Reactive<T extends object> = { [K in keyof T]: T[K] extends () => infer V ? V : T[K] }
 export function toReactive<T extends object>(fn: (() => T) | T): Reactive<T> {
   const v = () => unFn(fn)
+  const trueFn = () => true
+  const get = k => (e => typeof e == 'function' && $MEMO in e ? e() : e)(v()[k])
   return new Proxy(Object.create(null), {
-    // get: (o, k, r) => k == $PROXY ? r : (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
-    get: (o, k, r) => (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
-    // get: (o, k, r) => k == $PROXY ? r : unFn(v()[k]),
-    defineProperty: (o, k, attributes) => Reflect.defineProperty(v(), k, attributes),
-    getPrototypeOf: () => Reflect.getPrototypeOf(v()),
+    get: (o, k, r) => k == $PROXY ? r : (v => typeof v == 'function' && $MEMO in v ? v() : v)(v()[k]),
+    set: trueFn,
+    defineProperty: (o, k, attributes) => Object.defineProperty(v(), k, attributes),
+    deleteProperty: trueFn,
+    getPrototypeOf: () => Object.getPrototypeOf(v()),
     has: (o, p) => p == $PROXY || p in v(),
     ownKeys: (o) => Object.keys(v()),
-    getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true })
+    getOwnPropertyDescriptor: (o, k) => ({ enumerable: true, configurable: true, get() { return get(k) }, set: trueFn }),
   })
 }
 

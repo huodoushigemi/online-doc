@@ -7,9 +7,9 @@ import { render } from 'solid-js/web'
 import { Table } from './components/DataTable/xxx.tsx'
 
 import 'virtual:uno.css'
-import { createMutable, createStore } from 'solid-js/store'
+import { createMutable, createStore, produce, reconcile } from 'solid-js/store'
 import { range } from 'es-toolkit'
-import { createSignal } from 'solid-js'
+import { createComponent, createSignal } from 'solid-js'
 
 // import '@el-form-render/element-plus/wc'
 
@@ -21,14 +21,18 @@ const root = document.getElementById('root')!
 const state = createMutable({ bool: true })
 
 const cols = range(30).map(e => ({ name: 'col_' + e, id: e, width: 80 }))
-const [data, setData] = createStore(range(100).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
+// const [data, setData] = createStore(range(1000).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
+let data = createMutable(range(100).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
+// const setData = (v) => console.log(data.splice(0, data.length, ...v))
+// const setData = (v) => reconcile(v, { merge: false })(data)
 // const cols = range(10).map(e => ({ name: e, id: e, width: 80 }))
 // const [data, setData] = createSignal(range(20).map((e, i) => Object.fromEntries(cols.map(e => [e.id, i + 1]))))
 
 render(() => <input type='checkbox' checked={state.bool} onChange={(e) => state.bool = e.currentTarget.checked} />, root)
+render(() => <button onClick={() => data[0][1] = 'xxx'}>xxx</button>, root)
 
-setData({ from: 0, to: data.length - 1 }, produce(e => e.g = e[0] % 10))
-setData({ from: 0, to: data.length - 1 }, (e, i) => ({ ...e, n: i[0] % 3 }))
+// setData({ from: 0, to: data.length - 1 }, produce(e => e.g = e[0] % 10))
+// setData({ from: 0, to: data.length - 1 }, (e, i) => ({ ...e, n: i[0] % 3 }))
 
 // cols[2].fixed = 'left'
 // cols[0].editable = true
@@ -49,7 +53,7 @@ render(() => <Table
     // props => ({ ...props, td: (o) => <props.td {...o}>asd{o.children}</props.td> })
   ]}
   // th={o => <th asd {...o} />}
-  onDataChange={v => setData(reconcile(v))}
+  onDataChange={v => reconcile(v)(data)}
   expand={{ render: ({ data }) => <div class='p-6'>{JSON.stringify(data)}</div> }}
   rowGroup={{ fields: ['g', 'n'] }}
 />, root)
