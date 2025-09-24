@@ -334,5 +334,5 @@ export const defaultsPlugins = [
   // ExpandPlugin,
   // RowGroupPlugin,
   EditablePlugin,
-  // HistoryPlugin,
+  HistoryPlugin,
 ]

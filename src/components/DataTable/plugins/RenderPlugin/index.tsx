@@ -4,7 +4,6 @@ import { component } from 'undestructure-macros'
 import { type Plugin, type TD } from '../../xxx'
 import { Checkbox, Files } from './components'
 import { resolveOptions } from '@/utils'
-import { createStore } from 'solid-js/store'
 
 declare module '../../xxx' {
   interface TableProps {
@@ -47,9 +46,11 @@ export const RenderPlugin: Plugin = {
 }
 
 const text: Render = component(({ data, col, onChange }) => {
-  return (v =>
-    col.enum ? resolveOptions(col.enum).find(e => e.value == v)?.label ?? v : v
-  )(data[col.id])
+  return <>{
+    (v =>
+      col.enum ? resolveOptions(col.enum).find(e => e.value == v)?.label ?? v : v
+    )(data[col.id])
+  }</>
 })
 
 const number = text

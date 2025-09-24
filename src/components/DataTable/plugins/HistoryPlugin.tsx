@@ -1,11 +1,9 @@
-import { createEffect, createMemo, useContext } from 'solid-js'
+import { unwrap } from 'solid-js/store'
 import { createUndoHistory } from '@solid-primitives/history'
-import { trackStore, captureStoreUpdates } from '@solid-primitives/deep'
+import { captureStoreUpdates } from '@solid-primitives/deep'
 import { combineProps } from '@solid-primitives/props'
-import { Ctx, type Plugin } from '../xxx'
-import { log } from '@/utils'
-import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useTinykeys } from '@/hooks'
+import { type Plugin } from '../xxx'
 
 declare module '../xxx' {
   interface TableProps {
@@ -22,11 +20,8 @@ export const HistoryPlugin: Plugin = {
   priority: Infinity,
   store: (store) => {
     const getDelta = captureStoreUpdates(store.rawProps.data!)
-    createEffect(() => log(getDelta()))
-    const [data, setData] = createStore(store.rawProps.data!)
     let clonedState
     return ({
-      historyData: data,
       history: createUndoHistory(() => {
         const delta = getDelta()
         if (!delta.length) return
@@ -45,12 +40,8 @@ export const HistoryPlugin: Plugin = {
           }
         }
 
-        const snapshot = log(clonedState)
-        // store.historyData = snapshot
-        // return () => store.historyData = reconcile(snapshot)(store.historyData)
-        // return () => store.historyData = snapshot
-        return () => setData(reconcile(snapshot))
-        // return () => store.rawProps.onDataChange?.(snapshot)
+        const snapshot = clonedState
+        return () => store.rawProps.onDataChange?.(snapshot)
       })
     })
   },
@@ -66,9 +57,5 @@ export const HistoryPlugin: Plugin = {
       o = combineProps({ ref: e => el = e, tabindex: -1 }, o)
       return <Table {...o} />
     },
-    data: ({ data }, { store }) => (
-      // data
-      log(unwrap(store.historyData))
-    )
   },
 }
